@@ -39,7 +39,7 @@ public class LoginServiceImpl implements LoginService {
     public LoginResponseDto login(LoginRequestDto dto, HttpServletRequest request, HttpServletResponse response) {
         LoggingService var10000 = this.loggingService;
         String var10001 = dto.getIdentifier();
-        var10000.logInfo("[로그인 요청] loginId=" + var10001 + ", loginType=" + String.valueOf(dto.getLoginType()));
+        var10000.logInfo("Login Request] loginId=" + var10001 + ", loginType=" + String.valueOf(dto.getLoginType()));
         LoginCredential loginCredential = this.findValidMember(dto);
         BaseMember member = loginCredential.getMember();
         UUID memberUuid = member.getUuidMember();
