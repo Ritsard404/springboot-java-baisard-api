@@ -1,0 +1,51 @@
+services:
+  baisard-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: baisard-api:latest
+    container_name: baisard-api
+    ports:
+      - "8080:1234"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/app_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 200303
+      SPRING_REDIS_HOST: redis
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_DB: app_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 200303
+    ports:
+      - "5432:5432"
+    volumes:
+      - baisard_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      retries: 5
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: 200303
+    ports:
+      - "5050:80"
+
+volumes:
+  baisard_data:

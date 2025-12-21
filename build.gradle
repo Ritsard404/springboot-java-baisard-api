@@ -1,0 +1,134 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.0.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.ritsard'
+version = '0.0.1-SNAPSHOT'
+description = 'Practice project for future'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+
+def repoUsername = System.getenv("NEXUS_USERNAME") ?: findProperty("nexus.username") ?: "guest"
+def repoPassword = System.getenv("NEXUS_PASSWORD") ?: findProperty("nexus.password") ?: "!Guest@8081"
+def repoReleaseUrl = "https://nexus.lodong.co.kr/repository/maven-releases/"
+def repoSnapshotUrl = "https://nexus.lodong.co.kr/repository/maven-snapshots/"
+
+repositories {
+    mavenCentral()
+
+    maven {
+        name = "LodongReleases"
+        url = uri(repoReleaseUrl)
+        allowInsecureProtocol = true
+        credentials {
+            username = repoUsername
+            password = repoPassword
+        }
+        content {
+            includeGroup "com.lodong"
+        }
+        metadataSources {
+            mavenPom()
+            artifact()
+        }
+        authentication {
+            basic(BasicAuthentication)
+        }
+    }
+
+    maven {
+        name = "LodongSnapshots"
+        url = uri(repoSnapshotUrl)
+        allowInsecureProtocol = true
+        credentials {
+            username = repoUsername
+            password = repoPassword
+        }
+        content {
+            includeGroup "com.lodong"
+        }
+        metadataSources {
+            mavenPom()
+            artifact()
+        }
+        authentication {
+            basic(BasicAuthentication)
+        }
+    }
+}
+
+ext {
+    set('springCloudVersion', "2023.0.1")
+    set('lodongJwtMemberModule2Version', "0.1.88")
+    set('lodongBaseModuleVersion', "0.1.8")
+    set('lodongUtilsModuleVersion', "4.1.25")
+    set('lodongFileModuleVersion', "0.1.55")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+    dependencies {
+        dependency "com.lodong:jwt-member-module2:${lodongJwtMemberModule2Version}"
+        dependency "com.lodong:base-module:${lodongBaseModuleVersion}"
+        dependency "com.lodong:utils-module:${lodongUtilsModuleVersion}"
+        dependency "com.lodong:file-module:${lodongFileModuleVersion}"
+    }
+}
+
+dependencies {
+
+    /* --- Core --- */
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    /* --- Database --- */
+    runtimeOnly 'org.postgresql:postgresql'
+
+    /* --- Swagger (Boot 4 compatible) --- */
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+
+    /* --- Lombok --- */
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    /* --- Dev --- */
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    /* --- Testing --- */
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+
+    implementation 'commons-codec:commons-codec:1.20.0'
+    implementation 'com.nimbusds:nimbus-jose-jwt:10.6'
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+
+//    Redis
+    implementation 'org.springframework.data:spring-data-redis:3.2.1'
+
+//    implementation "com.lodong:jwt-member-module2:${lodongJwtMemberModule2Version}"
+//    implementation "com.lodong:base-module:${lodongBaseModuleVersion}"
+//    implementation "com.lodong:utils-module:${lodongUtilsModuleVersion}"
+//    implementation "com.lodong:file-module:${lodongFileModuleVersion}"
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
