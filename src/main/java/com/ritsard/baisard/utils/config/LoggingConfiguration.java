@@ -14,13 +14,15 @@ public class LoggingConfiguration {
 
     @Bean
     public EnhancedMdcFilter enhancedMdcFilter() {
-        log.info("MDC \ud544\ud130 \ub4f1\ub85d: \ubaa8\ub4e0 \uc694\uccad\uc5d0 \ucd94\uc801 ID \ubc0f \ucee8\ud14d\uc2a4\ud2b8 \uc815\ubcf4 \ucd94\uac00");
+        // Translation: MDC Filter Registered: Adding trace ID and context info to all requests
+        log.info("MDC Filter registered: Adding trace ID and context information to all requests");
         return new EnhancedMdcFilter();
     }
 
     @Bean
     public PerformanceLoggerAspect performanceLoggerAspect() {
-        log.info("\uc131\ub2a5 \ub85c\uae45 Aspect \ub4f1\ub85d: @LogPerformance \uc5b4\ub178\ud14c\uc774\uc158 \uc9c0\uc6d0");
+        // Translation: Performance Logging Aspect Registered: Supporting @LogPerformance annotation
+        log.info("Performance Logging Aspect registered: Supporting @LogPerformance annotation");
         return new PerformanceLoggerAspect();
     }
 
@@ -100,7 +102,8 @@ public class LoggingConfiguration {
 
         public static class Masking {
             private boolean enabled = true;
-            private String[] fields = new String[]{"password", "\uc8fc\ubbfc\ub4f1\ub85d\ubc88\ud638", "credit_card", "cardNumber", "\uc804\ud654\ubc88\ud638", "phoneNumber", "email"};
+            // Translated specific Korean PII fields: residentRegistrationNumber and phoneNumber
+            private String[] fields = new String[]{"password", "residentRegistrationNumber", "credit_card", "cardNumber", "phoneNumber", "email"};
 
             public boolean isEnabled() {
                 return this.enabled;
@@ -120,4 +123,3 @@ public class LoggingConfiguration {
         }
     }
 }
-

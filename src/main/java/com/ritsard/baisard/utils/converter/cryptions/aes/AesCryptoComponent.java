@@ -23,13 +23,15 @@ public class AesCryptoComponent {
     @Autowired
     public void setAesConverter(AESConverter aesConverter) {
         AesCryptoComponent.aesConverter = aesConverter;
-        log.info("AesCryptoComponent \ucd08\uae30\ud654 \uc644\ub8cc");
+        // Translation: AesCryptoComponent initialization complete
+        log.info("AesCryptoComponent initialization complete");
     }
 
     private static boolean isNewFormat(String encryptedText) {
         if (encryptedText == null || encryptedText.isEmpty()) {
             return true;
         }
+        // Heuristic check for Base64 (new GCM format) vs Hex (legacy)
         if (encryptedText.contains("+") || encryptedText.contains("/") || encryptedText.contains("=")) {
             return true;
         }
@@ -47,33 +49,41 @@ public class AesCryptoComponent {
                 return;
             }
             if (aesConverter == null) {
-                throw new IOException("AESConverter\uac00 \ucd08\uae30\ud654\ub418\uc9c0 \uc54a\uc558\uc2b5\ub2c8\ub2e4");
+                // Translation: AESConverter has not been initialized
+                throw new IOException("AESConverter has not been initialized");
             }
             try {
                 if (AesCryptoComponent.isNewFormat(encryptedValue)) {
-                    log.trace("GCM \ud615\uc2dd\uc73c\ub85c \ubcf5\ud638\ud654: {}", (Object) encryptedValue.substring(0, Math.min(10, encryptedValue.length())));
+                    // Translation: Decrypting using GCM format
+                    log.trace("Decrypting using GCM format: {}", (Object) encryptedValue.substring(0, Math.min(10, encryptedValue.length())));
                     String decrypted = aesConverter.decryption(encryptedValue);
                     gen.writeString(decrypted);
                 } else {
-                    log.trace("\ub808\uac70\uc2dc \ud615\uc2dd\uc73c\ub85c \ubcf5\ud638\ud654: {}", (Object) encryptedValue.substring(0, Math.min(10, encryptedValue.length())));
+                    // Translation: Decrypting using legacy format
+                    log.trace("Decrypting using legacy format: {}", (Object) encryptedValue.substring(0, Math.min(10, encryptedValue.length())));
                     String decrypted = aesConverter.legacyDecryption(encryptedValue);
                     gen.writeString(decrypted);
                 }
             } catch (Exception e) {
-                log.error("\ubcf5\ud638\ud654 \uc2e4\ud328: {}", (Object) e.getMessage());
+                // Translation: Decryption failed
+                log.error("Decryption failed: {}", (Object) e.getMessage());
                 try {
                     if (AesCryptoComponent.isNewFormat(encryptedValue)) {
-                        log.warn("GCM \ubcf5\ud638\ud654 \uc2e4\ud328, \ub808\uac70\uc2dc \ubc29\uc2dd \uc2dc\ub3c4");
+                        // Translation: GCM decryption failed, attempting legacy method
+                        log.warn("GCM decryption failed, attempting legacy method");
                         String decrypted = aesConverter.legacyDecryption(encryptedValue);
                         gen.writeString(decrypted);
                     } else {
-                        log.warn("\ub808\uac70\uc2dc \ubcf5\ud638\ud654 \uc2e4\ud328, GCM \ubc29\uc2dd \uc2dc\ub3c4");
+                        // Translation: Legacy decryption failed, attempting GCM method
+                        log.warn("Legacy decryption failed, attempting GCM method");
                         String decrypted = aesConverter.decryption(encryptedValue);
                         gen.writeString(decrypted);
                     }
                 } catch (Exception retryException) {
-                    log.error("\uc7ac\uc2dc\ub3c4 \ubcf5\ud638\ud654\ub3c4 \uc2e4\ud328: {}", (Object) retryException.getMessage());
-                    gen.writeString("[\ubcf5\ud638\ud654 \uc2e4\ud328]");
+                    // Translation: Retry decryption failed
+                    log.error("Retry decryption failed: {}", (Object) retryException.getMessage());
+                    // Translation: [Decryption Failed]
+                    gen.writeString("[Decryption Failed]");
                 }
             }
         }
@@ -87,15 +97,16 @@ public class AesCryptoComponent {
                 return plainText;
             }
             if (aesConverter == null) {
-                throw new IOException("AESConverter\uac00 \ucd08\uae30\ud654\ub418\uc9c0 \uc54a\uc558\uc2b5\ub2c8\ub2e4");
+                // Translation: AESConverter has not been initialized
+                throw new IOException("AESConverter has not been initialized");
             }
             try {
                 return aesConverter.encryption(plainText);
             } catch (Exception e) {
-                log.error("\uc554\ud638\ud654 \uc2e4\ud328: {}", (Object) e.getMessage());
-                throw new IOException("\uc554\ud638\ud654 \ucc98\ub9ac \uc911 \uc624\ub958\uac00 \ubc1c\uc0dd\ud588\uc2b5\ub2c8\ub2e4", e);
+                // Translation: Encryption failed / An error occurred during encryption processing
+                log.error("Encryption failed: {}", (Object) e.getMessage());
+                throw new IOException("An error occurred during encryption processing", e);
             }
         }
     }
 }
-
