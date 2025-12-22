@@ -29,7 +29,7 @@ import java.util.UUID;
 public class BaseFile
         extends BaseEntity {
     @Id
-    @Column(name = "uuid_base_file", nullable = false, columnDefinition = "BINARY(16)")
+    @Column(name = "uuid_base_file", nullable = false, columnDefinition = "UUID")
     private UUID uuidBaseFile;
     @Column(name = "filename", length = 255)
     private String filename;
