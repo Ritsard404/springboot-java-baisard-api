@@ -3,9 +3,9 @@ package com.ritsard.baisard.jwt.repository.member;
 import com.ritsard.baisard.base.repository.BaseQueryDslRepositoryImpl;
 import com.ritsard.baisard.base.repository.BaseSearchCondition;
 import com.ritsard.baisard.jwt.model.entity.BaseMember;
-import com.ritsard.baisard.jwt.model.entity.QBaseMember;
-import com.ritsard.baisard.jwt.model.entity.QLoginCredential;
-import com.ritsard.baisard.jwt.model.entity.QPermission;
+import com.ritsard.baisard.jwt.model.entity.QBaseMemberManual;
+import com.ritsard.baisard.jwt.model.entity.QLoginCredentialManual;
+import com.ritsard.baisard.jwt.model.entity.QPermissionManual;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EntityPathBase;
@@ -27,15 +27,15 @@ import org.springframework.util.StringUtils;
         readOnly = true
 )
 public class BaseMemberRepositoryImpl<T extends BaseMember> extends BaseQueryDslRepositoryImpl<T, UUID> implements BaseMemberRepositoryCustom<T> {
-    private final QBaseMember member;
-    private final QLoginCredential credential;
-    private final QPermission permission;
+    private final QBaseMemberManual member;
+    private final QLoginCredentialManual credential;
+    private final QPermissionManual permission;
 
     public BaseMemberRepositoryImpl(JPAQueryFactory queryFactory, EntityManager entityManager) {
         super(queryFactory, entityManager);
-        this.member = QBaseMember.baseMember;
-        this.credential = QLoginCredential.loginCredential;
-        this.permission = QPermission.permission;
+        this.member = QBaseMemberManual.baseMember;
+        this.credential = QLoginCredentialManual.loginCredential;
+        this.permission = QPermissionManual.permission;
     }
 
     protected EntityPathBase<T> getEntityPath() {
@@ -100,7 +100,7 @@ public class BaseMemberRepositoryImpl<T extends BaseMember> extends BaseQueryDsl
     }
 
     private BooleanExpression hasPermissionName(String permissionName) {
-        return StringUtils.hasText(permissionName) ? ((QPermission) this.member.permissions.any()).permissionType.eq(permissionName) : null;
+        return StringUtils.hasText(permissionName) ? ((QPermissionManual) this.member.permissions.any()).permissionType.eq(permissionName) : null;
     }
 
     private BooleanExpression keywordContains(String keyword) {

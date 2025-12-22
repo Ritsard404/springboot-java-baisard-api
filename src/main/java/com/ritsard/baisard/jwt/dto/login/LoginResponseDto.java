@@ -1,16 +1,15 @@
 package com.ritsard.baisard.jwt.dto.login;
 
 import com.ritsard.baisard.jwt.dto.TokenDto;
-import lombok.AllArgsConstructor;
+import lombok.*;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.util.Set;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor

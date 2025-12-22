@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class LoginServiceImpl implements LoginService {
     private final LoginCredentialRepository loginCredentialRepository;
     private final BaseMemberRepository baseMemberRepository;
-    private final PasswordEncoder passwordEncoder;
+//    private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final LoggingService loggingService;
     private final MemberRedisService memberRedisService;

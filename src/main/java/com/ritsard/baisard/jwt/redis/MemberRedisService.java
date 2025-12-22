@@ -16,7 +16,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@Primary
 public class MemberRedisService {
     @Generated
     private static final Logger log = LoggerFactory.getLogger(MemberRedisService.class);

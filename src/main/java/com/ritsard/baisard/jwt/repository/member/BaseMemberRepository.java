@@ -6,7 +6,7 @@ import com.ritsard.baisard.jwt.model.entity.BaseMember;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface BaseMemberRepository<T extends BaseMember> extends BaseRepository<T, UUID> {
+public interface BaseMemberRepository<T extends BaseMember> extends BaseRepository<T, UUID>, BaseMemberRepositoryCustom<T> {
     Optional<T> findByEmail(String email);
 
     Optional<T> findByEmailAndIsDeletedFalse(String email);

@@ -93,7 +93,7 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     private static final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT).disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-    private static final String APP_PACKAGE = "com.ritsardF";
+    private static final String APP_PACKAGE = "com.ritsard";
     private static final int MAX_STACK_LINES = 10;
 
     @ExceptionHandler(value = {MethodArgumentTypeMismatchException.class})
@@ -259,26 +259,39 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = {SQLException.class})
     protected ResponseEntity<?> handleSQLException(SQLException ex, HttpServletRequest request) {
         String errorId = this.generateErrorId();
-        MDC.put((String) "errorId", (String) errorId);
-        String customMessage = "\ub370\uc774\ud130\ubca0\uc774\uc2a4 \uc791\uc5c5 \uc911 SQL \uc624\ub958\uac00 \ubc1c\uc0dd\ud588\uc2b5\ub2c8\ub2e4";
+        MDC.put("errorId", errorId);
+
+        // Default custom message and error code
+        String customMessage = "An SQL error occurred while processing the database operation.";
         ErrorCode errorCode = ErrorCode.SQL_ERROR;
+
         int sqlErrorCode = ex.getErrorCode();
         String sqlState = ex.getSQLState();
-        log.error("\n==================== SQL \uc624\ub958 \uc0c1\uc138 \uc815\ubcf4 ====================\n\ud83c\udd94 \uc624\ub958 ID: {}\n\ud83d\udccd \uc694\uccad \uc815\ubcf4:\n   - URL: {} {}\n   - \ud074\ub77c\uc774\uc5b8\ud2b8 IP: {}\n\ud83d\udd34 SQL \uc624\ub958:\n   - \uc624\ub958 \ucf54\ub4dc: {}\n   - SQL \uc0c1\ud0dc: {}\n   - \uba54\uc2dc\uc9c0: {}", new Object[]{errorId, request.getMethod(), request.getRequestURI(), request.getRemoteAddr(), sqlErrorCode, sqlState, ex.getMessage()});
+
+        log.error("\n==================== SQL ERROR DETAILS ====================\n" +
+                        "📝 Error ID: {}\n" +
+                        "📍 Request Info:\n   - URL: {} {}\n   - Client IP: {}\n" +
+                        "🔴 SQL Error:\n   - Error Code: {}\n   - SQL State: {}\n   - Message: {}",
+                errorId, request.getMethod(), request.getRequestURI(), request.getRemoteAddr(),
+                sqlErrorCode, sqlState, ex.getMessage());
+
+        // Customize messages based on SQL error codes
         if (sqlErrorCode == 1406) {
-            customMessage = "\ub370\uc774\ud130 \uae38\uc774\uac00 \ucd5c\ub300 \ud5c8\uc6a9 \uae38\uc774\ub97c \ucd08\uacfc\ud588\uc2b5\ub2c8\ub2e4. \uc785\ub825 \ub370\uc774\ud130\ub97c \ud655\uc778\ud558\uc138\uc694.";
+            customMessage = "The value for the column is too large. Please check the input data.";
             errorCode = ErrorCode.DATA_TRUNCATION_ERROR;
         } else if (sqlErrorCode == 1062) {
-            customMessage = "\uc911\ubcf5\ub41c \ub370\uc774\ud130\uac00 \uc874\uc7ac\ud569\ub2c8\ub2e4. \uace0\uc720\ud55c \uac12\uc744 \uc785\ub825\ud558\uc138\uc694.";
+            customMessage = "Duplicate data exists. Please check the value being inserted.";
             errorCode = ErrorCode.UNIQUE_CONSTRAINT_ERROR;
         } else if (sqlErrorCode == 1452) {
-            customMessage = "\ucc38\uc870 \ubb34\uacb0\uc131 \uc81c\uc57d\uc870\uac74 \uc704\ubc18. \ucc38\uc870\ud558\ub294 \ub370\uc774\ud130\uac00 \uc874\uc7ac\ud558\ub294\uc9c0 \ud655\uc778\ud558\uc138\uc694.";
+            customMessage = "Foreign key constraint violation. The referenced data does not exist.";
             errorCode = ErrorCode.FOREIGN_KEY_VIOLATION_ERROR;
         }
+
         this.logJumpableStackTrace(ex);
+
         ApiResponse response = ApiResponse.error(errorCode, customMessage);
         response.setErrorId(errorId);
-        return ResponseEntity.status((HttpStatusCode) HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(value = {UnauthorizedException.class})
@@ -289,135 +302,134 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = {IllegalArgumentException.class})
     public ResponseEntity<?> handleIllegalArgumentException(IllegalArgumentException ex) {
         String errorId = this.generateErrorId();
-        MDC.put((String) "errorId", (String) errorId);
-        log.error("\u26a0\ufe0f [\uc798\ubabb\ub41c \uc778\uc790 \uc624\ub958] [ID:{}]: {}", (Object) errorId, (Object) ex.getMessage());
+        MDC.put("errorId", errorId);
+
+        log.error("⚠️ [Invalid Argument Error] [ID:{}]: {}", errorId, ex.getMessage());
         this.logJumpableStackTrace(ex);
+
         ApiResponse response = ApiResponse.error(ErrorCode.BAD_REQUEST_ERROR, ex.getMessage());
         response.setErrorId(errorId);
-        return ResponseEntity.status((HttpStatusCode) HttpStatus.BAD_REQUEST).body(response);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    /*
-     * WARNING - Removed try catching itself - possible behaviour change.
-     */
     private ResponseEntity<?> buildErrorResponse(Exception ex, ErrorCode errorCode, HttpStatus status, String customMessage) {
         String errorId = this.generateErrorId();
-        MDC.put((String) "errorId", (String) errorId);
+        MDC.put("errorId", errorId);
+
         try {
             HttpServletRequest request = null;
             try {
                 ServletWebRequest attrs = (ServletWebRequest) RequestContextHolder.getRequestAttributes();
-                if (attrs != null) {
-                    request = attrs.getRequest();
-                }
+                if (attrs != null) request = attrs.getRequest();
             } catch (Exception e) {
-                log.debug("\uc694\uccad \uc815\ubcf4 \ud68d\ub4dd \uc2e4\ud328: {}", (Object) e.getMessage());
+                log.debug("Error retrieving request info: {}", e.getMessage());
             }
+
             if (request != null) {
-                String contentType;
-                Map params;
-                StringBuilder logMessage = new StringBuilder();
-                logMessage.append("\n==================== \uc624\ub958 \uc0c1\uc138 \uc815\ubcf4 ====================\n");
-                logMessage.append(String.format("\ud83c\udd94 \uc624\ub958 ID: %s\n", errorId));
-                logMessage.append("\ud83d\udccd \uc694\uccad \uc815\ubcf4:\n");
+                Map<String, String[]> params;
+                StringBuilder logMessage = new StringBuilder("\n==================== ERROR DETAILS ====================\n");
+                logMessage.append(String.format("📝 Error ID: %s\n", errorId));
+                logMessage.append("📍 Request Info:\n");
                 logMessage.append(String.format("   - URL: %s %s\n", request.getMethod(), request.getRequestURI()));
+
                 if (request.getQueryString() != null) {
-                    logMessage.append(String.format("   - \ucffc\ub9ac\uc2a4\ud2b8\ub9c1: %s\n", request.getQueryString()));
+                    logMessage.append(String.format("   - Query String: %s\n", request.getQueryString()));
                 }
+
                 if (!(params = request.getParameterMap()).isEmpty()) {
-                    logMessage.append("   - \ud30c\ub77c\ubbf8\ud130:\n");
+                    logMessage.append("   - Parameters:\n");
                     params.forEach((key, values) -> {
-                        String value = String.join((CharSequence) ", ", values.toString());
-                        if (!this.isSensitiveParam((String) key)) {
+                        String value = String.join(", ", values);
+                        if (!this.isSensitiveParam(key)) {
                             logMessage.append(String.format("      * %s: %s\n", key, value));
                         } else {
                             logMessage.append(String.format("      * %s: [MASKED]\n", key));
                         }
                     });
                 }
-                if ((contentType = request.getContentType()) != null) {
-                    logMessage.append(String.format("   - Content-Type: %s\n", contentType));
+
+                if (request.getContentType() != null) {
+                    logMessage.append(String.format("   - Content-Type: %s\n", request.getContentType()));
                 }
-                logMessage.append(String.format("   - \ud074\ub77c\uc774\uc5b8\ud2b8 IP: %s\n", request.getRemoteAddr()));
+
+                logMessage.append(String.format("   - Client IP: %s\n", request.getRemoteAddr()));
                 logMessage.append(String.format("   - User-Agent: %s\n", request.getHeader("User-Agent")));
-                logMessage.append("\ud83d\udd34 \uc624\ub958:\n");
-                logMessage.append(String.format("   - \ud0c0\uc785: %s\n", ex.getClass().getSimpleName()));
-                logMessage.append(String.format("   - \uba54\uc2dc\uc9c0: %s\n", customMessage));
+                logMessage.append("🔴 Exception:\n");
+                logMessage.append(String.format("   - Type: %s\n", ex.getClass().getSimpleName()));
+                logMessage.append(String.format("   - Message: %s\n", customMessage));
                 if (ex.getMessage() != null && !ex.getMessage().equals(customMessage)) {
-                    logMessage.append(String.format("   - \uc6d0\ubcf8 \uba54\uc2dc\uc9c0: %s\n", ex.getMessage()));
+                    logMessage.append(String.format("   - Original Message: %s\n", ex.getMessage()));
                 }
                 log.error(logMessage.toString());
             } else {
-                log.error("\u26a0\ufe0f [{}] \uc5d0\ub7ec \ubc1c\uc0dd [ID:{}]: {}", new Object[]{ex.getClass().getSimpleName(), errorId, customMessage});
+                log.error("⚠️ [{}] occurred [ID:{}]: {}", ex.getClass().getSimpleName(), errorId, customMessage);
             }
+
             this.logJumpableStackTrace(ex);
+
             Throwable rootCause = this.getRootCause(ex);
             if (rootCause != ex) {
-                log.error("\ud83d\udca5 \uadfc\ubcf8 \uc6d0\uc778: {} - {}", (Object) rootCause.getClass().getSimpleName(), (Object) rootCause.getMessage());
+                log.error("💥 Root Cause: {} - {}", rootCause.getClass().getSimpleName(), rootCause.getMessage());
                 if (!rootCause.getClass().equals(ex.getClass())) {
                     this.logJumpableStackTrace(rootCause);
                 }
             }
+
             ApiResponse response = ApiResponse.error(errorCode, customMessage);
             response.setErrorId(errorId);
-            ResponseEntity responseEntity = ResponseEntity.status((HttpStatusCode) status).body(response);
-            return responseEntity;
+            return ResponseEntity.status(status).body(response);
         } finally {
-            MDC.remove((String) "errorId");
+            MDC.remove("errorId");
         }
     }
 
     private void logJumpableStackTrace(Throwable ex) {
-        if (ex == null || ex.getStackTrace() == null) {
-            return;
-        }
-        ArrayList<String> controllerFrames = new ArrayList<String>();
-        ArrayList<String> serviceFrames = new ArrayList<String>();
-        ArrayList<String> repositoryFrames = new ArrayList<String>();
-        ArrayList<String> otherAppFrames = new ArrayList<String>();
+        if (ex == null || ex.getStackTrace() == null) return;
+
+        ArrayList<String> controllerFrames = new ArrayList<>();
+        ArrayList<String> serviceFrames = new ArrayList<>();
+        ArrayList<String> repositoryFrames = new ArrayList<>();
+        ArrayList<String> otherAppFrames = new ArrayList<>();
+
         for (StackTraceElement element : ex.getStackTrace()) {
             String className = element.getClassName();
             if (!className.startsWith(APP_PACKAGE)) continue;
-            String frame2 = String.format("%s.%s(%s:%d)", element.getClassName(), element.getMethodName(), element.getFileName(), element.getLineNumber());
-            if (className.contains("Controller")) {
-                controllerFrames.add(frame2);
-                continue;
-            }
-            if (className.contains("Service")) {
-                serviceFrames.add(frame2);
-                continue;
-            }
-            if (className.contains("Repository")) {
-                repositoryFrames.add(frame2);
-                continue;
-            }
-            otherAppFrames.add(frame2);
+
+            String frame = String.format("%s.%s(%s:%d)", element.getClassName(), element.getMethodName(), element.getFileName(), element.getLineNumber());
+
+            if (className.contains("Controller")) controllerFrames.add(frame);
+            else if (className.contains("Service")) serviceFrames.add(frame);
+            else if (className.contains("Repository")) repositoryFrames.add(frame);
+            else otherAppFrames.add(frame);
         }
-        StringBuilder stackLog = new StringBuilder("\n\ud83d\udccd \uc2a4\ud0dd \ud2b8\ub808\uc774\uc2a4 \ubd84\uc11d:");
+
+        StringBuilder stackLog = new StringBuilder("\n📌 Stack Trace Analysis:");
         if (!controllerFrames.isEmpty()) {
-            stackLog.append("\n\ud83c\udfae Controller:");
-            controllerFrames.forEach(frame -> stackLog.append("\n    ").append((String) frame));
+            stackLog.append("\n🎮 Controller:");
+            controllerFrames.forEach(frame -> stackLog.append("\n    ").append(frame));
         }
         if (!serviceFrames.isEmpty()) {
-            stackLog.append("\n\ud83d\udd27 Service:");
-            serviceFrames.forEach(frame -> stackLog.append("\n    ").append((String) frame));
+            stackLog.append("\n🔧 Service:");
+            serviceFrames.forEach(frame -> stackLog.append("\n    ").append(frame));
         }
         if (!repositoryFrames.isEmpty()) {
-            stackLog.append("\n\ud83d\udcbe Repository:");
-            repositoryFrames.forEach(frame -> stackLog.append("\n    ").append((String) frame));
+            stackLog.append("\n💾 Repository:");
+            repositoryFrames.forEach(frame -> stackLog.append("\n    ").append(frame));
         }
         if (!otherAppFrames.isEmpty()) {
-            stackLog.append("\n\ud83d\udce6 \uae30\ud0c0 \uc560\ud50c\ub9ac\ucf00\uc774\uc158 \ucf54\ub4dc:");
-            otherAppFrames.stream().limit(5L).forEach(frame -> stackLog.append("\n    ").append((String) frame));
+            stackLog.append("\n📦 Other Application Frames:");
+            otherAppFrames.stream().limit(5).forEach(frame -> stackLog.append("\n    ").append(frame));
         }
+
         if (controllerFrames.isEmpty() && serviceFrames.isEmpty() && repositoryFrames.isEmpty() && otherAppFrames.isEmpty()) {
-            stackLog.append("\n\u26a0\ufe0f \uc560\ud50c\ub9ac\ucf00\uc774\uc158 \ucf54\ub4dc\ub97c \ucc3e\uc744 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4. \uc804\uccb4 \uc2a4\ud0dd (\ucc98\uc74c 3\uac1c):");
-            int count = 0;
-            for (StackTraceElement element : ex.getStackTrace()) {
-                if (count++ >= 3) continue;
+            stackLog.append("\n⚠️ No application-specific frames found. First 3 stack trace elements:");
+            for (int i = 0; i < Math.min(3, ex.getStackTrace().length); i++) {
+                StackTraceElement element = ex.getStackTrace()[i];
                 stackLog.append(String.format("\n    %s.%s(%s:%d)", element.getClassName(), element.getMethodName(), element.getFileName(), element.getLineNumber()));
             }
         }
+
         log.error(stackLog.toString());
     }
 
@@ -426,53 +438,51 @@ public class GlobalExceptionHandler {
             ServletWebRequest attrs = (ServletWebRequest) RequestContextHolder.getRequestAttributes();
             if (attrs != null) {
                 HttpServletRequest request = attrs.getRequest();
-                log.error("\ud83c\udf10 \uc694\uccad \uc815\ubcf4: {} {}", (Object) request.getMethod(), (Object) request.getRequestURI());
+                log.error("🌐 Request Info: {} {}", request.getMethod(), request.getRequestURI());
                 if (request.getQueryString() != null) {
-                    log.error("\ud83d\udd0d \ucffc\ub9ac \uc2a4\ud2b8\ub9c1: {}", (Object) request.getQueryString());
+                    log.error("🔍 Query String: {}", request.getQueryString());
                 }
-                HashMap params = new HashMap();
+                HashMap<String, String> params = new HashMap<>();
                 request.getParameterMap().forEach((key, values) -> {
-                    String value = String.join((CharSequence) ", ", values);
-                    if (this.isSensitiveParam((String) key)) {
+                    String value = String.join(", ", values);
+                    if (this.isSensitiveParam(key)) {
                         params.put(key, "********");
                     } else {
                         params.put(key, value);
                     }
                 });
                 if (!params.isEmpty()) {
-                    log.error("\ud83d\udcdd \uc694\uccad \ud30c\ub77c\ubbf8\ud130: {}", params);
+                    log.error("📝 Request Parameters: {}", params);
                 }
             }
         } catch (Exception e) {
-            log.debug("\uc694\uccad \uc815\ubcf4 \ub85c\uae45 \uc2e4\ud328: {}", (Object) e.getMessage());
+            log.debug("Failed to retrieve request info: {}", e.getMessage());
         }
     }
 
     private void logRequestObject(Object requestObject) {
-        if (requestObject == null) {
-            return;
-        }
+        if (requestObject == null) return;
         try {
             String json = objectMapper.writeValueAsString(requestObject);
-            log.error("\ud83d\udce6 \uc694\uccad \uac1d\uccb4 \uad6c\uc870:\n{}", (Object) json);
+            log.error("📦 Request Object Details:\n{}", json);
         } catch (Exception e) {
-            log.error("\uc694\uccad \uac1d\uccb4 \uc9c1\ub82c\ud654 \uc2e4\ud328: {}", (Object) e.getMessage());
+            log.error("Failed to serialize request object: {}", e.getMessage());
         }
     }
 
     private boolean isSensitiveParam(String paramName) {
-        if (paramName == null) {
-            return false;
-        }
+        if (paramName == null) return false;
         String lowerName = paramName.toLowerCase();
-        return lowerName.contains("password") || lowerName.contains("token") || lowerName.contains("key") || lowerName.contains("secret") || lowerName.contains("credential") || lowerName.contains("auth");
+        return lowerName.contains("password") || lowerName.contains("token") || lowerName.contains("key")
+                || lowerName.contains("secret") || lowerName.contains("credential") || lowerName.contains("auth");
     }
 
     private Map<String, Object> collectErrorDetails(Exception ex, String errorType) {
-        HashMap<String, Object> details = new HashMap<String, Object>();
+        HashMap<String, Object> details = new HashMap<>();
         details.put("exceptionType", errorType);
         details.put("exceptionClass", ex.getClass().getName());
         details.put("message", ex.getMessage());
+
         StackTraceElement[] stackTrace = ex.getStackTrace();
         if (stackTrace != null && stackTrace.length > 0) {
             StackTraceElement relevantFrame = this.findRelevantStackFrame(stackTrace);
@@ -481,38 +491,40 @@ public class GlobalExceptionHandler {
             details.put("fileName", relevantFrame.getFileName());
             details.put("lineNumber", relevantFrame.getLineNumber());
         }
+
         try {
-            String requestId;
             HttpServletRequest request = ((ServletWebRequest) RequestContextHolder.getRequestAttributes()).getRequest();
             details.put("requestUri", request.getRequestURI());
             details.put("requestMethod", request.getMethod());
             details.put("queryString", request.getQueryString());
             details.put("remoteAddr", request.getRemoteAddr());
             details.put("userAgent", request.getHeader("User-Agent"));
+
             Object userId = request.getAttribute("userId");
             if (userId != null) {
-                MDC.put((String) "userId", (String) userId.toString());
+                MDC.put("userId", userId.toString());
                 details.put("userId", userId);
             }
-            if ((requestId = (String) request.getAttribute("requestId")) != null && !requestId.isEmpty()) {
-                MDC.put((String) "requestId", (String) requestId);
+
+            String requestId = (String) request.getAttribute("requestId");
+            if (requestId != null && !requestId.isEmpty()) {
+                MDC.put("requestId", requestId);
                 details.put("requestId", requestId);
             }
         } catch (Exception e) {
-            details.put("requestUri", "\uc694\uccad \uc815\ubcf4 \uc5c6\uc74c");
+            details.put("requestUri", "Request info unavailable");
             details.put("requestMethod", "UNKNOWN");
         }
+
         return details;
     }
 
     private StackTraceElement findRelevantStackFrame(StackTraceElement[] stackTrace) {
         for (StackTraceElement element : stackTrace) {
-            if (!element.getClassName().startsWith(APP_PACKAGE)) continue;
-            return element;
+            if (element.getClassName().startsWith(APP_PACKAGE)) return element;
         }
         for (StackTraceElement element : stackTrace) {
-            if (!element.getClassName().contains("Controller") && !element.getClassName().contains("Service")) continue;
-            return element;
+            if (element.getClassName().contains("Controller") || element.getClassName().contains("Service")) return element;
         }
         return stackTrace[0];
     }
@@ -523,7 +535,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = {ProcessorException.class})
     public ResponseEntity<?> handleProcessorException(ProcessorException ex, WebRequest request) {
-        String message = String.format("%s (\ud504\ub85c\uc138\uc11c: %s)", ex.getMessage(), ex.getProcessorName());
+        String message = String.format("%s (Processor: %s)", ex.getMessage(), ex.getProcessorName());
         return this.buildErrorResponse(ex, ErrorCode.PROCESSOR_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, message);
     }
 
@@ -539,126 +551,51 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = {RateLimitException.class})
     public ResponseEntity<?> handleRateLimitException(RateLimitException ex, WebRequest request) {
-        String message = String.format("%s (\uc57d %d\ucd08 \ud6c4 \uc7ac\uc2dc\ub3c4 \uac00\ub2a5)", ex.getMessage(), ex.getRetryAfterSeconds());
+        String message = String.format("%s (Retry after %d seconds)", ex.getMessage(), ex.getRetryAfterSeconds());
         ResponseEntity<?> response = this.buildErrorResponse(ex, ErrorCode.RATE_LIMIT_EXCEEDED, HttpStatus.TOO_MANY_REQUESTS, message);
-        return ((ResponseEntity.BodyBuilder) ResponseEntity.status((HttpStatusCode) HttpStatus.TOO_MANY_REQUESTS).header("Retry-After", new String[]{String.valueOf(ex.getRetryAfterSeconds())})).body(response.getBody());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
+                .body(response.getBody());
     }
 
     @ExceptionHandler(value = {TokenLimitExceededException.class})
     public ResponseEntity<?> handleTokenLimitExceededException(TokenLimitExceededException ex, WebRequest request) {
-        String message = String.format("%s (\ud604\uc7ac: %d, \ucd5c\ub300: %d)", ex.getMessage(), ex.getCurrentTokenCount(), ex.getMaxTokens());
+        String message = String.format("%s (Current: %d, Max: %d)", ex.getMessage(), ex.getCurrentTokenCount(), ex.getMaxTokens());
         return this.buildErrorResponse(ex, ErrorCode.TOKEN_LIMIT_EXCEEDED, HttpStatus.BAD_REQUEST, message);
     }
 
     @ExceptionHandler(value = {ContentFilteringException.class})
     public ResponseEntity<?> handleContentFilteringException(ContentFilteringException ex, WebRequest request) {
-        String message = String.format("%s (\ud544\ud130\ub9c1 \uce74\ud14c\uace0\ub9ac: %s)", ex.getMessage(), ex.getFilteredCategory());
+        String message = String.format("%s (Filtered Category: %s)", ex.getMessage(), ex.getFilteredCategory());
         return this.buildErrorResponse(ex, ErrorCode.CONTENT_FILTERED, HttpStatus.BAD_REQUEST, message);
     }
 
     @ExceptionHandler(value = {TimeoutException.class, SocketTimeoutException.class})
     public ResponseEntity<?> handleTimeoutException(Exception ex, WebRequest request) {
-        return this.buildErrorResponse(ex, ErrorCode.API_TIMEOUT, HttpStatus.GATEWAY_TIMEOUT, "\uc694\uccad \uc2dc\uac04\uc774 \ucd08\uacfc\ub418\uc5c8\uc2b5\ub2c8\ub2e4.");
+        return this.buildErrorResponse(ex, ErrorCode.API_TIMEOUT, HttpStatus.GATEWAY_TIMEOUT, "Request timed out.");
     }
 
     @ExceptionHandler(value = {ServerErrorException.class})
     public ResponseEntity<?> handleServerErrorException(ServerErrorException ex, WebRequest request) {
-        ErrorCode errorCode = ex.getStatusCode() == 502 ? ErrorCode.BAD_GATEWAY : (ex.getStatusCode() == 503 ? ErrorCode.SERVICE_UNAVAILABLE : ErrorCode.API_SERVER_ERROR);
+        ErrorCode errorCode = ex.getStatusCode() == 502 ? ErrorCode.BAD_GATEWAY :
+                ex.getStatusCode() == 503 ? ErrorCode.SERVICE_UNAVAILABLE :
+                        ErrorCode.API_SERVER_ERROR;
         return this.buildErrorResponse(ex, errorCode, HttpStatus.valueOf((int) ex.getStatusCode()), ex.getMessage());
     }
 
     @ExceptionHandler(value = {RequestException.class})
     public ResponseEntity<?> handleRequestException(RequestException ex, WebRequest request) {
-        ErrorCode errorCode = ex.isUnauthorized() ? ErrorCode.API_UNAUTHORIZED : (ex.isForbidden() ? ErrorCode.API_FORBIDDEN : (ex.isNotFound() ? ErrorCode.RESOURCE_NOT_FOUND : (ex.isRateLimited() ? ErrorCode.RATE_LIMIT_EXCEEDED : ErrorCode.API_BAD_REQUEST)));
+        ErrorCode errorCode = ex.isUnauthorized() ? ErrorCode.API_UNAUTHORIZED :
+                ex.isForbidden() ? ErrorCode.API_FORBIDDEN :
+                        ex.isNotFound() ? ErrorCode.RESOURCE_NOT_FOUND :
+                                ex.isRateLimited() ? ErrorCode.RATE_LIMIT_EXCEEDED :
+                                        ErrorCode.API_BAD_REQUEST;
         return this.buildErrorResponse(ex, errorCode, HttpStatus.valueOf((int) ex.getStatusCode()), ex.getMessage());
     }
 
     @ExceptionHandler(value = {NetworkException.class})
     public ResponseEntity<?> handleNetworkException(NetworkException ex, WebRequest request) {
         return this.buildErrorResponse(ex, ErrorCode.NETWORK_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
-    }
-
-    @ExceptionHandler(value = {MethodArgumentNotValidException.class})
-    protected ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        String errorId = this.generateErrorId();
-        MDC.put((String) "errorId", (String) errorId);
-        String errorMessage = ex.getBindingResult().getFieldErrors().stream().map(this::formatFieldError).distinct().collect(Collectors.joining(" | "));
-        log.error("\u26a0\ufe0f [\uac80\uc99d \uc624\ub958] [ID:{}]: {}", (Object) errorId, (Object) errorMessage);
-        this.logJumpableStackTrace((Throwable) ex);
-        ApiResponse response = ApiResponse.error(ErrorCode.METHOD_ARGUMENT_NOT_VALID_ERROR, errorMessage);
-        response.setErrorId(errorId);
-        return ResponseEntity.status((HttpStatusCode) HttpStatus.BAD_REQUEST).body(response);
-    }
-
-    private String formatFieldError(FieldError fieldError) {
-        String field = fieldError.getField();
-        String defaultMessage = fieldError.getDefaultMessage();
-        Object rejectedValue = fieldError.getRejectedValue();
-        if (this.isSensitiveParam(field)) {
-            return String.format("\ud544\ub4dc '%s': %s", field, defaultMessage);
-        }
-        return String.format("\ud544\ub4dc '%s': %s (\uc785\ub825\uac12: '%s')", field, defaultMessage, rejectedValue);
-    }
-
-    @ExceptionHandler(value = {MissingRequestHeaderException.class})
-    protected ResponseEntity<?> handleMissingRequestHeaderException(MissingRequestHeaderException ex) {
-        String message = String.format("\ud544\uc218 \ud5e4\ub354\uac00 \ub204\ub77d\ub418\uc5c8\uc2b5\ub2c8\ub2e4: %s", ex.getHeaderName());
-        return this.buildErrorResponse((Exception) ex, ErrorCode.NOT_VALID_HEADER_ERROR, HttpStatus.BAD_REQUEST, message);
-    }
-
-    @ExceptionHandler(value = {HttpMessageNotReadableException.class})
-    protected ResponseEntity<?> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
-        String message = "\uc694\uccad \ubcf8\ubb38\uc744 \uc77d\uc744 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4. \uc720\ud6a8\ud55c JSON \ud615\uc2dd\uc778\uc9c0 \ud655\uc778\ud558\uc138\uc694.";
-        return this.buildErrorResponse((Exception) ex, ErrorCode.REQUEST_BODY_MISSING_ERROR, HttpStatus.BAD_REQUEST, message);
-    }
-
-    @ExceptionHandler(value = {MissingServletRequestParameterException.class})
-    protected ResponseEntity<?> handleMissingRequestHeaderExceptionException(MissingServletRequestParameterException ex) {
-        String message = String.format("\ud544\uc218 \ud30c\ub77c\ubbf8\ud130\uac00 \ub204\ub77d\ub418\uc5c8\uc2b5\ub2c8\ub2e4: %s (%s \ud0c0\uc785)", ex.getParameterName(), ex.getParameterType());
-        return this.buildErrorResponse((Exception) ex, ErrorCode.MISSING_REQUEST_PARAMETER_ERROR, HttpStatus.BAD_REQUEST, message);
-    }
-
-    @ExceptionHandler(value = {HttpClientErrorException.BadRequest.class})
-    protected ResponseEntity<?> handleBadRequestException(HttpClientErrorException e) {
-        StackTraceElement[] stackTraceElements = e.getStackTrace();
-        String errorLocation = "\uc54c \uc218 \uc5c6\ub294 \uc704\uce58";
-        if (stackTraceElements.length > 0) {
-            StackTraceElement element = stackTraceElements[0];
-            errorLocation = String.format("%s.%s(%s:%d)", element.getClassName(), element.getMethodName(), element.getFileName(), element.getLineNumber());
-        }
-        String message = String.format("%s (\uc704\uce58: %s)", e.getMessage(), errorLocation);
-        return this.buildErrorResponse((Exception) e, ErrorCode.BAD_REQUEST_ERROR, HttpStatus.BAD_REQUEST, message);
-    }
-
-    @ExceptionHandler(value = {AccessDeniedException.class})
-    protected ResponseEntity<?> handleAccessDeniedException(AccessDeniedException ex) {
-        return this.buildErrorResponse((Exception) ex, ErrorCode.ACCESS_DENIED, HttpStatus.FORBIDDEN, "\uc811\uadfc \uad8c\ud55c\uc774 \uc5c6\uc2b5\ub2c8\ub2e4. \ud544\uc694\ud55c \uad8c\ud55c\uc744 \ud655\uc778\ud558\uc138\uc694.");
-    }
-
-    @ExceptionHandler(value = {NoHandlerFoundException.class})
-    protected ResponseEntity<?> handleNoHandlerFoundExceptionException(NoHandlerFoundException ex, HttpServletRequest request) {
-        String errorId = this.generateErrorId();
-        MDC.put((String) "errorId", (String) errorId);
-        log.error("\n==================== 404 Not Found \uc0c1\uc138 \uc815\ubcf4 ====================\n\ud83c\udd94 \uc624\ub958 ID: {}\n\ud83d\udccd \uc694\uccad \uc815\ubcf4:\n   - URL: {} {}\n   - \ud5e4\ub354: {}\n   - \ud074\ub77c\uc774\uc5b8\ud2b8 IP: {}\n   - User-Agent: {}\n\u274c \uc874\uc7ac\ud558\uc9c0 \uc54a\ub294 \uc5d4\ub4dc\ud3ec\uc778\ud2b8\uc785\ub2c8\ub2e4.", new Object[]{errorId, ex.getHttpMethod(), ex.getRequestURL(), Collections.list(request.getHeaderNames()), request.getRemoteAddr(), request.getHeader("User-Agent")});
-        String message = String.format("\uc694\uccad\ud558\uc2e0 \ub9ac\uc18c\uc2a4\ub97c \ucc3e\uc744 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4: %s %s", ex.getHttpMethod(), ex.getRequestURL());
-        ApiResponse response = ApiResponse.error(ErrorCode.NOT_FOUND_ERROR, message);
-        response.setErrorId(errorId);
-        return ResponseEntity.status((HttpStatusCode) HttpStatus.NOT_FOUND).body(response);
-    }
-
-    @ExceptionHandler(value = {InvalidTokenRequestException.class})
-    protected ResponseEntity<?> handleInvalidTokenRequestException(InvalidTokenRequestException ex) {
-        return this.buildErrorResponse(ex, ErrorCode.INVALID_TOKEN_ERROR, HttpStatus.UNAUTHORIZED, ex.getMessage());
-    }
-
-    @ExceptionHandler(value = {JwtTokenIsNotValid.class})
-    public ResponseEntity<?> handleJwtTokenIsNotValid(JwtTokenIsNotValid ex) {
-        return this.buildErrorResponse(ex, ErrorCode.JWT_TOKEN_NOT_VALID_ERROR, HttpStatus.UNAUTHORIZED, "\uc778\uc99d \ud1a0\ud070\uc774 \uc720\ud6a8\ud558\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4. \ub2e4\uc2dc \ub85c\uadf8\uc778\ud574 \uc8fc\uc138\uc694.");
-    }
-
-    @ExceptionHandler(value = {JwtTokenExpiredException.class})
-    public ResponseEntity<?> handleJwtTokenExpiredException(JwtTokenExpiredException ex) {
-        return this.buildErrorResponse(ex, ErrorCode.EXPIRED_TOKEN_ERROR, HttpStatus.UNAUTHORIZED, "\uc778\uc99d \ud1a0\ud070\uc774 \ub9cc\ub8cc\ub418\uc5c8\uc2b5\ub2c8\ub2e4. \ub2e4\uc2dc \ub85c\uadf8\uc778\ud574 \uc8fc\uc138\uc694.");
     }
 
     @ExceptionHandler(value = {AuthentificationException.class})
@@ -699,55 +636,78 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = {DataIntegrityViolationException.class})
     protected ResponseEntity<?> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
         String errorId = this.generateErrorId();
-        MDC.put((String) "errorId", (String) errorId);
-        Object message = "\uc774\ubbf8 \uc0ac\uc6a9 \uc911\uc778 \uac12\uc774 \uc874\uc7ac\ud569\ub2c8\ub2e4.";
+        MDC.put("errorId", errorId);
+
+        // Default message and error code
+        Object message = "The item you are trying to use already exists.";
         ErrorCode errorCode = ErrorCode.DUPLICATE_ERROR;
-        Throwable rootCause = this.getRootCause((Throwable) ex);
+
+        // Get the root cause message
+        Throwable rootCause = this.getRootCause(ex);
         String errorMessage = rootCause.getMessage();
-        log.error("\ud83d\udcdb [\ub370\uc774\ud130 \ubb34\uacb0\uc131 \uc704\ubc18] \uc624\ub958 ID: {}, \uba54\uc2dc\uc9c0: {}", (Object) errorId, (Object) errorMessage);
+
+        // Log the error with ID and message
+        log.error("\ud83d\udcdb [Data Integrity Violation] Error ID: {}, Message: {}", errorId, errorMessage);
+
+        // Log request info if available
         Map<String, Object> requestInfo = DbExceptionUtils.collectRequestInfo();
         if (!requestInfo.isEmpty()) {
-            log.error("\ud83c\udf10 \uc694\uccad \uc815\ubcf4: {} {}", requestInfo.get("method"), requestInfo.get("uri"));
+            log.error("\ud83c\udf10 Request Info: {} {}", requestInfo.get("method"), requestInfo.get("uri"));
         }
+
+        // Customize message based on specific constraint or error
         if (errorMessage.contains("uk_base_member_phone_is_deleted")) {
-            message = "\uc774\ubbf8 \ub4f1\ub85d\ub41c \ud578\ub4dc\ud3f0 \ubc88\ud638 \uc785\ub2c8\ub2e4.";
+            message = "The phone number you entered is already registered.";
         } else if (errorMessage.contains("uk_base_member_email_is_deleted")) {
-            message = "\uc774\ubbf8 \ub4f1\ub85d\ub41c \uc774\uba54\uc77c \uc8fc\uc18c \uc785\ub2c8\ub2e4.";
+            message = "The email address you entered is already registered.";
         } else if (errorMessage.contains("uk_")) {
             String constraintName = errorMessage.contains("uk_") ? errorMessage.substring(errorMessage.indexOf("uk_")) : errorMessage;
-            message = "\uc774\ubbf8 \ub4f1\ub85d\ub41c \uace0\uc720 \uc815\ubcf4\uc785\ub2c8\ub2e4: " + constraintName;
+            message = "The item you entered violates a unique constraint: " + constraintName;
             errorCode = ErrorCode.UNIQUE_CONSTRAINT_ERROR;
         } else if (errorMessage.toLowerCase().contains("foreign key")) {
-            message = "\ub2e4\ub978 \ub370\uc774\ud130\uc5d0\uc11c \ucc38\uc870\ud558\uace0 \uc788\uc5b4 \ucc98\ub9ac\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4.";
+            message = "The item cannot be processed because it is referenced by another record.";
             errorCode = ErrorCode.FOREIGN_KEY_VIOLATION_ERROR;
         } else if (errorMessage.contains("Data truncated")) {
             String columnName = DbExceptionUtils.extractColumnName(errorMessage);
-            message = columnName != null ? String.format("\uceec\ub7fc '%s'\uc5d0 \ub108\ubb34 \uae34 \ub370\uc774\ud130\uac00 \uc785\ub825\ub418\uc5c8\uc2b5\ub2c8\ub2e4.", columnName) : "\ub370\uc774\ud130 \uae38\uc774\uac00 \ucd5c\ub300 \ud5c8\uc6a9 \uae38\uc774\ub97c \ucd08\uacfc\ud588\uc2b5\ub2c8\ub2e4.";
+            message = columnName != null
+                    ? String.format("The column '%s' received a value that was too long.", columnName)
+                    : "A value was too large to fit in the database column.";
             errorCode = ErrorCode.DATA_TRUNCATION_ERROR;
         }
-        this.logJumpableStackTrace((Throwable) ex);
+
+        // Log full stack trace
+        this.logJumpableStackTrace(ex);
+
+        // Build API response with error ID
         ApiResponse response = ApiResponse.error(errorCode, (String) message);
         response.setErrorId(errorId);
-        return ResponseEntity.status((HttpStatusCode) HttpStatus.CONFLICT).body(response);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
+
 
     @ExceptionHandler(value = {NullPointerException.class})
     protected ResponseEntity<?> handleNullPointerException(NullPointerException ex) {
         StackTraceElement[] stackTrace = ex.getStackTrace();
-        String location = stackTrace.length > 0 ? stackTrace[0].getClassName() + "." + stackTrace[0].getMethodName() + "(" + stackTrace[0].getFileName() + ":" + stackTrace[0].getLineNumber() + ")" : "unknown";
-        String message = String.format("\ub110 \ucc38\uc870 \uc624\ub958\uac00 \ubc1c\uc0dd\ud588\uc2b5\ub2c8\ub2e4 (\uc704\uce58: %s)", location);
+        String location = stackTrace.length > 0
+                ? stackTrace[0].getClassName() + "." + stackTrace[0].getMethodName() +
+                "(" + stackTrace[0].getFileName() + ":" + stackTrace[0].getLineNumber() + ")"
+                : "unknown";
+        String message = String.format("A null pointer exception occurred (Location: %s)", location);
         return this.buildErrorResponse(ex, ErrorCode.NULL_POINT_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, message);
     }
 
     @ExceptionHandler(value = {IOException.class})
     protected ResponseEntity<?> handleIOException(IOException ex) {
-        return this.buildErrorResponse(ex, ErrorCode.IO_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, "\uc785\ucd9c\ub825 \ucc98\ub9ac \uc911 \uc624\ub958\uac00 \ubc1c\uc0dd\ud588\uc2b5\ub2c8\ub2e4: " + ex.getMessage());
+        return this.buildErrorResponse(ex, ErrorCode.IO_ERROR, HttpStatus.INTERNAL_SERVER_ERROR,
+                "An I/O error occurred during processing: " + ex.getMessage());
     }
 
     @ExceptionHandler(value = {HttpMediaTypeNotSupportedException.class})
     public ResponseEntity<?> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException ex) {
-        String message = String.format("\uc9c0\uc6d0\ud558\uc9c0 \uc54a\ub294 \ubbf8\ub514\uc5b4 \ud0c0\uc785\uc785\ub2c8\ub2e4: %s. \uc9c0\uc6d0 \ud0c0\uc785: %s", ex.getContentType(), ex.getSupportedMediaTypes());
-        return this.buildErrorResponse((Exception) ex, ErrorCode.HTTP_MEDIA_TYPE_NOT_SUPPORTED_ERROR, HttpStatus.UNSUPPORTED_MEDIA_TYPE, message);
+        String message = String.format("Unsupported media type: %s. Supported types: %s",
+                ex.getContentType(), ex.getSupportedMediaTypes());
+        return this.buildErrorResponse(ex, ErrorCode.HTTP_MEDIA_TYPE_NOT_SUPPORTED_ERROR, HttpStatus.UNSUPPORTED_MEDIA_TYPE, message);
     }
 
     @ExceptionHandler(value = {ImageFileIsTooBigException.class})
@@ -757,7 +717,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = {NoSuchElementException.class})
     protected ResponseEntity<?> noSuchElementException(NoSuchElementException ex) {
-        return this.buildErrorResponse(ex, ErrorCode.NO_SUCH_ELEMENT, HttpStatus.NOT_FOUND, "\uc694\uccad\ud55c \ub370\uc774\ud130\ub97c \ucc3e\uc744 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4: " + ex.getMessage());
+        return this.buildErrorResponse(ex, ErrorCode.NO_SUCH_ELEMENT, HttpStatus.NOT_FOUND,
+                "The requested element could not be found: " + ex.getMessage());
     }
 
     @ExceptionHandler(value = {CEH_ParametersAreNotExist.class})
@@ -773,17 +734,20 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = {JsonParseException.class, JsonProcessingException.class})
     public ResponseEntity<?> handleJsonProcessingException(Exception ex) {
-        return this.buildErrorResponse(ex, ErrorCode.API_JSON_PARSING_ERROR, HttpStatus.BAD_REQUEST, "JSON \ub370\uc774\ud130 \ud30c\uc2f1 \uc911 \uc624\ub958\uac00 \ubc1c\uc0dd\ud588\uc2b5\ub2c8\ub2e4. \uc62c\ubc14\ub978 \ud615\uc2dd\uc778\uc9c0 \ud655\uc778\ud558\uc138\uc694.");
+        return this.buildErrorResponse(ex, ErrorCode.API_JSON_PARSING_ERROR, HttpStatus.BAD_REQUEST,
+                "A JSON parsing error occurred. Please verify that the input is correctly formatted.");
     }
 
     @ExceptionHandler(value = {Exception.class})
     protected ResponseEntity<?> handleAllExceptions(Exception ex) {
-        return this.buildErrorResponse(ex, ErrorCode.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, "\uc11c\ubc84 \ub0b4\ubd80 \uc624\ub958\uac00 \ubc1c\uc0dd\ud588\uc2b5\ub2c8\ub2e4. \uad00\ub9ac\uc790\uc5d0\uac8c \ubb38\uc758\ud558\uc138\uc694.");
+        return this.buildErrorResponse(ex, ErrorCode.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR,
+                "An internal server error occurred. Please contact the administrator.");
     }
 
     private boolean isDevelopmentEnvironment() {
         String activeProfile = System.getProperty("spring.profiles.active", "");
         return activeProfile.equals("local") || activeProfile.equals("dev") || activeProfile.equals("test");
     }
+
 }
 

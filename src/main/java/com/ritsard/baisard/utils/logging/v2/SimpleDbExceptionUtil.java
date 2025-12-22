@@ -15,7 +15,6 @@ package com.ritsard.baisard.utils.logging.v2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.lodong.utilsmodule.logging.v2.EnhancedLoggingUtil;
 import org.hibernate.exception.DataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

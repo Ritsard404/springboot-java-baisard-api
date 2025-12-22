@@ -78,9 +78,9 @@ import java.util.Base64;
  * </ul>
  *
  * @author Lodong Development Team
- * @since 1.0
  * @see <a href="https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html">OWASP Password Storage Cheat Sheet</a>
  * @see <a href="https://tools.ietf.org/html/rfc9106">RFC 9106 - Argon2</a>
+ * @since 1.0
  */
 public class PasswordEncoderUtil {
 
@@ -134,6 +134,7 @@ public class PasswordEncoderUtil {
 
         /**
          * BCrypt 기본 강도 암호화 / BCrypt encoding with default strength
+         *
          * @param rawPassword 원본 패스워드 / raw password
          * @return 암호화된 패스워드 / encoded password
          * @throws IllegalArgumentException 패스워드가 null이거나 빈 문자열인 경우 / if password is null or empty
@@ -145,6 +146,7 @@ public class PasswordEncoderUtil {
 
         /**
          * BCrypt 고보안 강도 암호화 / BCrypt encoding with high security strength
+         *
          * @param rawPassword 원본 패스워드 / raw password
          * @return 암호화된 패스워드 / encoded password
          * @throws IllegalArgumentException 패스워드가 null이거나 빈 문자열인 경우 / if password is null or empty
@@ -156,7 +158,8 @@ public class PasswordEncoderUtil {
 
         /**
          * BCrypt 패스워드 일치 확인 / BCrypt password verification
-         * @param rawPassword 원본 패스워드 / raw password
+         *
+         * @param rawPassword     원본 패스워드 / raw password
          * @param encodedPassword 암호화된 패스워드 / encoded password
          * @return 일치 여부 / match result
          * @throws IllegalArgumentException 매개변수가 유효하지 않은 경우 / if parameters are invalid
@@ -174,6 +177,7 @@ public class PasswordEncoderUtil {
 
         /**
          * BCrypt 해시 강도 확인 / Check BCrypt hash strength
+         *
          * @param encodedPassword 암호화된 패스워드 / encoded password
          * @return 해시 강도 / hash strength
          */
@@ -256,6 +260,7 @@ public class PasswordEncoderUtil {
 
         /**
          * SCrypt 기본 강도 암호화 / SCrypt encoding with default strength
+         *
          * @param rawPassword 원본 패스워드 / raw password
          * @return 암호화된 패스워드 / encoded password
          * @throws IllegalArgumentException 패스워드가 유효하지 않은 경우 / if password is invalid
@@ -267,6 +272,7 @@ public class PasswordEncoderUtil {
 
         /**
          * SCrypt 고보안 강도 암호화 / SCrypt encoding with high security strength
+         *
          * @param rawPassword 원본 패스워드 / raw password
          * @return 암호화된 패스워드 / encoded password
          * @throws IllegalArgumentException 패스워드가 유효하지 않은 경우 / if password is invalid
@@ -278,7 +284,8 @@ public class PasswordEncoderUtil {
 
         /**
          * SCrypt 패스워드 일치 확인 / SCrypt password verification
-         * @param rawPassword 원본 패스워드 / raw password
+         *
+         * @param rawPassword     원본 패스워드 / raw password
          * @param encodedPassword 암호화된 패스워드 / encoded password
          * @return 일치 여부 / match result
          * @throws IllegalArgumentException 매개변수가 유효하지 않은 경우 / if parameters are invalid
@@ -343,6 +350,7 @@ public class PasswordEncoderUtil {
 
         /**
          * PBKDF2 기본 강도 암호화 / PBKDF2 encoding with default strength
+         *
          * @param rawPassword 원본 패스워드 / raw password
          * @return 암호화된 패스워드 / encoded password
          * @throws IllegalArgumentException 패스워드가 유효하지 않은 경우 / if password is invalid
@@ -359,6 +367,7 @@ public class PasswordEncoderUtil {
 
         /**
          * PBKDF2 고보안 강도 암호화 / PBKDF2 encoding with high security strength
+         *
          * @param rawPassword 원본 패스워드 / raw password
          * @return 암호화된 패스워드 / encoded password
          * @throws IllegalArgumentException 패스워드가 유효하지 않은 경우 / if password is invalid
@@ -375,7 +384,8 @@ public class PasswordEncoderUtil {
 
         /**
          * PBKDF2 패스워드 일치 확인 / PBKDF2 password verification
-         * @param rawPassword 원본 패스워드 / raw password
+         *
+         * @param rawPassword     원본 패스워드 / raw password
          * @param encodedPassword 암호화된 패스워드 / encoded password
          * @return 일치 여부 / match result
          * @throws IllegalArgumentException 매개변수가 유효하지 않은 경우 / if parameters are invalid
@@ -448,8 +458,8 @@ public class PasswordEncoderUtil {
      * boolean isValid = PasswordEncoderUtil.Argon2Util.matches("myPassword", hash);
      * }</pre>
      *
-     * @since 1.0
      * @see <a href="https://tools.ietf.org/html/rfc9106">RFC 9106 - The Argon2 Memory-Hard Function</a>
+     * @since 1.0
      */
     public static class Argon2Util {
 
@@ -472,6 +482,7 @@ public class PasswordEncoderUtil {
 
         /**
          * Argon2 기본 강도 암호화 / Argon2 encoding with default strength
+         *
          * @param rawPassword 원본 패스워드 / raw password
          * @return 암호화된 패스워드 / encoded password
          * @throws IllegalArgumentException 패스워드가 유효하지 않은 경우 / if password is invalid
@@ -483,6 +494,7 @@ public class PasswordEncoderUtil {
 
         /**
          * Argon2 고보안 강도 암호화 / Argon2 encoding with high security strength
+         *
          * @param rawPassword 원본 패스워드 / raw password
          * @return 암호화된 패스워드 / encoded password
          * @throws IllegalArgumentException 패스워드가 유효하지 않은 경우 / if password is invalid
@@ -494,7 +506,8 @@ public class PasswordEncoderUtil {
 
         /**
          * Argon2 패스워드 일치 확인 / Argon2 password verification
-         * @param rawPassword 원본 패스워드 / raw password
+         *
+         * @param rawPassword     원본 패스워드 / raw password
          * @param encodedPassword 암호화된 패스워드 / encoded password
          * @return 일치 여부 / match result
          * @throws IllegalArgumentException 매개변수가 유효하지 않은 경우 / if parameters are invalid
@@ -556,12 +569,14 @@ public class PasswordEncoderUtil {
      * @since 1.0
      * @deprecated 보안상 취약하므로 마이그레이션 목적으로만 사용, 신규 개발 금지
      */
+    @Deprecated
     public static class LegacyHashUtil {
 
         private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
         /**
          * SHA-256 해싱 (솔트 포함) / SHA-256 hashing with salt
+         *
          * @param rawPassword 원본 패스워드 / raw password
          * @return 솔트 + 해시 결합된 문자열 / salt + hash combined string
          * @throws RuntimeException 해싱 실패 시 / when hashing fails
@@ -592,7 +607,8 @@ public class PasswordEncoderUtil {
 
         /**
          * SHA-256 패스워드 검증 / SHA-256 password verification
-         * @param rawPassword 원본 패스워드 / raw password
+         *
+         * @param rawPassword     원본 패스워드 / raw password
          * @param encodedPassword 인코딩된 패스워드 / encoded password
          * @return 일치 여부 / match result
          */
@@ -632,7 +648,8 @@ public class PasswordEncoderUtil {
 
     /**
      * 패스워드 유효성 검증 / Validate password
-     * @param password 검증할 패스워드 / password to validate
+     *
+     * @param password  검증할 패스워드 / password to validate
      * @param algorithm 알고리즘 이름 / algorithm name
      * @throws IllegalArgumentException 패스워드가 유효하지 않은 경우 / if password is invalid
      */
@@ -650,8 +667,9 @@ public class PasswordEncoderUtil {
 
     /**
      * 인코딩된 패스워드 유효성 검증 / Validate encoded password
+     *
      * @param encodedPassword 검증할 인코딩된 패스워드 / encoded password to validate
-     * @param algorithm 알고리즘 이름 / algorithm name
+     * @param algorithm       알고리즘 이름 / algorithm name
      * @throws IllegalArgumentException 인코딩된 패스워드가 유효하지 않은 경우 / if encoded password is invalid
      */
     private static void validateEncodedPassword(String encodedPassword, String algorithm) {
@@ -699,7 +717,6 @@ public class PasswordEncoderUtil {
      *
      * System.out.println("점수: " + strength.getScore() + "/8");
      * }</pre>
-     *
      * @since 1.0
      */
     public static PasswordStrength checkPasswordStrength(String password) {
@@ -742,9 +759,17 @@ public class PasswordEncoderUtil {
             this.message = message;
         }
 
-        public boolean isStrong() { return strong; }
-        public int getScore() { return score; }
-        public String getMessage() { return message; }
+        public boolean isStrong() {
+            return strong;
+        }
+
+        public int getScore() {
+            return score;
+        }
+
+        public String getMessage() {
+            return message;
+        }
 
         @Override
         public String toString() {

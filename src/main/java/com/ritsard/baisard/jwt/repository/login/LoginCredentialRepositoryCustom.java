@@ -10,16 +10,9 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface LoginCredentialRepositoryCustom extends JpaRepository<LoginCredential, UUID> {
-    Optional<LoginCredential> findByIdentifierAndLoginType(@NotBlank String identifier, @NotNull LoginType loginType);
+public interface LoginCredentialRepositoryCustom {
+    Optional<LoginCredential> findWithMember(UUID uuidLoginCredential);
 
-    boolean existsByIdentifier(String identifier);
-
-    @Query("    SELECT lc.identifier\n    FROM LoginCredential lc\n    WHERE lc.member.name = :name AND lc.member.email = :email\n")
-    Optional<String> findIdentifierByNameAndEmail(String name, String email);
-
-    @Query("SELECT lc FROM LoginCredential lc WHERE lc.identifier = :identifier AND lc.member.email = :email")
-    Optional<LoginCredential> findByIdentifierAndEmail(String identifier, String email);
-
-    Optional<LoginCredential> findByIdentifier(String identifier);
+    Optional<LoginCredential> findWithMemberByIdentifier(String identifier);
 }
+

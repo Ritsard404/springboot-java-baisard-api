@@ -13,7 +13,6 @@
  */
 package com.ritsard.baisard.utils.logging.v2;
 
-import com.lodong.utilsmodule.logging.v2.LogPerformance;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
