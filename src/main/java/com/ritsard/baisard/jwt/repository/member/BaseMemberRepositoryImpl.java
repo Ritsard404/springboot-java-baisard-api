@@ -1,27 +1,26 @@
 package com.ritsard.baisard.jwt.repository.member;
 
-import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.EntityPathBase;
-import com.querydsl.core.types.dsl.SimpleExpression;
-import com.querydsl.jpa.impl.JPAQuery;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ritsard.baisard.base.repository.BaseQueryDslRepositoryImpl;
 import com.ritsard.baisard.base.repository.BaseSearchCondition;
 import com.ritsard.baisard.jwt.model.entity.BaseMember;
 import com.ritsard.baisard.jwt.model.entity.QBaseMember;
 import com.ritsard.baisard.jwt.model.entity.QLoginCredential;
 import com.ritsard.baisard.jwt.model.entity.QPermission;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.EntityPathBase;
+import com.querydsl.core.types.dsl.SimpleExpression;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import java.time.LocalDate;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.time.LocalDate;
-import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 @Transactional(
@@ -40,7 +39,7 @@ public class BaseMemberRepositoryImpl<T extends BaseMember> extends BaseQueryDsl
     }
 
     protected EntityPathBase<T> getEntityPath() {
-        return this.member;
+        return (EntityPathBase<T>) this.member;
     }
 
     protected SimpleExpression<UUID> getIdPath() {
@@ -48,7 +47,7 @@ public class BaseMemberRepositoryImpl<T extends BaseMember> extends BaseQueryDsl
     }
 
     protected Class<T> getEntityClass() {
-        return BaseMember.class;
+        return (Class<T>) BaseMember.class;
     }
 
     protected void addDynamicConditions(BooleanBuilder builder, Object searchCondition) {

@@ -1,5 +1,7 @@
 package com.ritsard.baisard.utils.exceptions;
 
+import java.lang.RuntimeException;
+
 public class JwtTokenExpiredException extends RuntimeException {
     public JwtTokenExpiredException(String message) {
         super(message);

@@ -139,6 +139,10 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'org.json:json:20230227'
     implementation 'org.hibernate.validator:hibernate-validator:7.0.2.Final'
+    implementation "com.google.zxing:core:3.5.3"
+    implementation 'com.google.zxing:javase:3.3.0'
+
+    implementation 'org.reflections:reflections:0.10.2'
 
 //    Redis
     implementation 'org.springframework.data:spring-data-redis:3.2.1'

@@ -1,5 +1,7 @@
 package com.ritsard.baisard.utils.exceptions;
 
+import java.lang.RuntimeException;
+
 public class JwtTokenIsNotValid extends RuntimeException {
     public JwtTokenIsNotValid(String message) {
         super(message);
@@ -13,3 +15,4 @@ public class JwtTokenIsNotValid extends RuntimeException {
         super("Token is not valid");
     }
 }
+

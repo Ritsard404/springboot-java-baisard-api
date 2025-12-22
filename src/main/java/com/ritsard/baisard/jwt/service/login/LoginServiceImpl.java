@@ -37,9 +37,8 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public LoginResponseDto login(LoginRequestDto dto, HttpServletRequest request, HttpServletResponse response) {
-        LoggingService var10000 = this.loggingService;
-        String var10001 = dto.getIdentifier();
-        var10000.logInfo("Login Request] loginId=" + var10001 + ", loginType=" + String.valueOf(dto.getLoginType()));
+        String identifier = dto.getIdentifier();
+        loggingService.logInfo("Login Request] loginId=" + identifier + ", loginType=" + String.valueOf(dto.getLoginType()));
         LoginCredential loginCredential = this.findValidMember(dto);
         BaseMember member = loginCredential.getMember();
         UUID memberUuid = member.getUuidMember();
