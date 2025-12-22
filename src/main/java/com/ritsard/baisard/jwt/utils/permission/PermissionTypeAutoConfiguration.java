@@ -9,7 +9,7 @@ public class PermissionTypeAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean({PermissionTypeProvider.class})
     public PermissionTypeProvider defaultPermissionTypeProvider() {
-        return () -> new PermissionType[]{new PermissionType() {
+        return () -> new IPermissionType[]{new IPermissionType() {
             public String name() {
                 return "USER";
             }
@@ -17,7 +17,7 @@ public class PermissionTypeAutoConfiguration {
             public String getDescription() {
                 return "General users";
             }
-        }, new PermissionType() {
+        }, new IPermissionType() {
             public String name() {
                 return "ADMIN";
             }

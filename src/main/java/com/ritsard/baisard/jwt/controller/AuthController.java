@@ -6,7 +6,7 @@ import com.ritsard.baisard.jwt.dto.signup.SignupRequestDto;
 import com.ritsard.baisard.jwt.model.entity.BaseMember;
 import com.ritsard.baisard.jwt.service.login.LoginService;
 import com.ritsard.baisard.jwt.service.sign.SignService;
-import com.ritsard.baisard.jwt.utils.permission.PermissionType;
+import com.ritsard.baisard.jwt.utils.permission.IPermissionType;
 import com.ritsard.baisard.jwt.utils.permission.PermissionTypeProvider;
 import com.ritsard.baisard.utils.dto.ApiResponse;
 import com.ritsard.baisard.utils.enums.SuccessCode;
@@ -78,7 +78,7 @@ public abstract class AuthController<T extends BaseMember> {
     }
 
     protected Set<String> getPermissionsByRole(String role) {
-        return (Set) Arrays.stream(this.permissionTypeProvider.getPermissionTypes()).filter((p) -> p.name().equalsIgnoreCase(role)).map(PermissionType::name).collect(Collectors.toSet());
+        return (Set) Arrays.stream(this.permissionTypeProvider.getPermissionTypes()).filter((p) -> p.name().equalsIgnoreCase(role)).map(IPermissionType::name).collect(Collectors.toSet());
     }
 
     protected abstract T createNewBaseMember(SignupRequestDto dto);
