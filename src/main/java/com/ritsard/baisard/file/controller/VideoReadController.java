@@ -3,6 +3,7 @@ package com.ritsard.baisard.file.controller;
 import com.ritsard.baisard.file.dto.v3.video.VideoUploadResponse;
 import com.ritsard.baisard.file.service.v4.VideoAccessService;
 import com.ritsard.baisard.utils.dto.ApiResponse;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 )
 @RestController
 @RequestMapping({"files/video"})
+@Hidden
 public class VideoReadController {
     private final VideoAccessService videoAccessService;
 
