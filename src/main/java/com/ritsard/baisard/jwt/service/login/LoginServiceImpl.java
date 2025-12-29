@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class LoginServiceImpl implements LoginService {
     private final LoginCredentialRepository loginCredentialRepository;
     private final BaseMemberRepository baseMemberRepository;
-//    private final PasswordEncoder passwordEncoder;
+    //    private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final LoggingService loggingService;
     private final MemberRedisService memberRedisService;
@@ -42,6 +42,7 @@ public class LoginServiceImpl implements LoginService {
         LoginCredential loginCredential = this.findValidMember(dto);
         BaseMember member = loginCredential.getMember();
         UUID memberUuid = member.getUuidMember();
+        UUID memberCompanyUuid = member.getCompany().getUuidCompany();
 
         Set<String> roles = (Set) member.getPermissions().stream().map(Permission::getPermissionType).collect(Collectors.toSet());
         this.memberRedisService.save(member);

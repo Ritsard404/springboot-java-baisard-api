@@ -1,4 +1,4 @@
-package com.ritsard.baisard.domain.member;
+package com.ritsard.baisard.domain.member.entity;
 
 
 import com.ritsard.baisard.domain.enums.PermissionType;
@@ -57,6 +57,10 @@ public class Member extends BaseMember implements FileLoadable<ImageFileInfo> {
     @Column(name = "member_deleted_at")
     private Instant memberDeletedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uuid_company")
+    private Company company;
+
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "member_images", joinColumns = @JoinColumn(name = "uuid_member"))
@@ -76,7 +80,7 @@ public class Member extends BaseMember implements FileLoadable<ImageFileInfo> {
 
     @Override
     public UUID getId() {
-        return this.uuidMember;
+        return this.getUuidMember();
     }
 
     public String getClassification() {
@@ -91,7 +95,7 @@ public class Member extends BaseMember implements FileLoadable<ImageFileInfo> {
     }
 
     public String getIdentifier() {
-        return loginCredentials.stream()
+        return getLoginCredentials().stream()
                 .findFirst()
                 .map(LoginCredential::getIdentifier)
                 .orElse(null);
