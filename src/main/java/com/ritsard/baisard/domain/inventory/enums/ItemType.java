@@ -1,13 +1,13 @@
-package com.ritsard.baisard.global.enums;
+package com.ritsard.baisard.domain.inventory.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum AccessPathType {
-    GOOGLE("Google"),
-    ETC("Etc");
+public enum ItemType {
+    RESALE("Resale"),
+    WHOLESALE("Whole Sale");
 
     private final String description;
 }

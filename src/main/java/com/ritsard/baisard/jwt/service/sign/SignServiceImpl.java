@@ -21,6 +21,7 @@ import com.ritsard.baisard.utils.helper.PasswordEncoderUtil;
 import com.ritsard.baisard.utils.helper.UUIDManager;
 import com.ritsard.baisard.utils.log.LoggingService;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,18 +32,21 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Service
+//@Service
 @RequiredArgsConstructor
-public class SignServiceImpl<T extends BaseMember> implements SignService {
+@Transactional(
+        readOnly = true
+)
+public abstract class SignServiceImpl<T extends BaseMember> implements SignService {
 
-    private final BaseMemberRepository<T> baseMemberRepository;
-    private final PermissionRepository permissionRepository;
-    private final LoginCredentialRepository loginCredentialRepository;
+    protected final BaseMemberRepository<T> baseMemberRepository;
+    protected final PermissionRepository permissionRepository;
+    protected final LoginCredentialRepository loginCredentialRepository;
     protected final AESConverter aesConverter;
-    private final LoggingService loggingService;
-    private final MemberRedisService memberRedisService;
-    private final TokenProvider tokenProvider;
-    private final AuthManager<T> authManager;
+    protected final LoggingService loggingService;
+    protected final MemberRedisService memberRedisService;
+    protected final TokenProvider tokenProvider;
+    protected final AuthManager<T> authManager;
 
     @Transactional
     public <M extends BaseMember> void signup(

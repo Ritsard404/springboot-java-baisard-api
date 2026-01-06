@@ -42,7 +42,6 @@ public class LoginServiceImpl implements LoginService {
         LoginCredential loginCredential = this.findValidMember(dto);
         BaseMember member = loginCredential.getMember();
         UUID memberUuid = member.getUuidMember();
-        UUID memberCompanyUuid = member.getCompany().getUuidCompany();
 
         Set<String> roles = (Set) member.getPermissions().stream().map(Permission::getPermissionType).collect(Collectors.toSet());
         this.memberRedisService.save(member);
@@ -66,7 +65,7 @@ public class LoginServiceImpl implements LoginService {
     }
 
     private LoginCredential findValidMember(LoginRequestDto dto) {
-        LoginCredential credential = (LoginCredential) this.loginCredentialRepository.findByIdentifier(dto.getIdentifier()).orElseThrow(() -> new NoSuchUserException("아이디 또는 비밀번호가 올바르지 않습니다."));
+        LoginCredential credential = (LoginCredential) this.loginCredentialRepository.findByIdentifier(dto.getIdentifier()).orElseThrow(() -> new NoSuchUserException("Your ID or password is incorrect."));
         if (credential.isDeleted()) {
             throw new NoSuchUserException("This user has been deleted\n.");
         } else if (!credential.getLoginType().equals(dto.getLoginType())) {

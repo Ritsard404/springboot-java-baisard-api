@@ -35,6 +35,6 @@ public class Company extends BaseEntity {
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "company")
     @Builder.Default
-    private List<BaseMember> baseMembers = new ArrayList<>();
+    private List<Member> Members = new ArrayList<>();
 
 }

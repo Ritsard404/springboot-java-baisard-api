@@ -1,6 +1,6 @@
 package com.ritsard.baisard.global.utils;
 
-import com.ritsard.baisard.domain.enums.PermissionType;
+import com.ritsard.baisard.domain.member.enums.PermissionType;
 import com.ritsard.baisard.jwt.model.entity.Permission;
 import com.ritsard.baisard.jwt.repository.login.PermissionRepository;
 import com.ritsard.baisard.utils.config.ConfigurationRunnerBase;

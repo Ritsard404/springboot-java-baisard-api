@@ -13,6 +13,7 @@ import com.ritsard.baisard.utils.enums.SuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +31,7 @@ public abstract class AuthController<T extends BaseMember> {
 
     @PostMapping({"/login"})
     @Operation(
-            summary = "로그인"
+            summary = "login"
     )
     public ApiResponse<?> login(@RequestBody LoginRequestDto dto, HttpServletRequest request, HttpServletResponse response) {
         LoginResponseDto object = this.loginService.login(dto, request, response);
@@ -38,8 +39,8 @@ public abstract class AuthController<T extends BaseMember> {
     }
 
     @Operation(
-            summary = "아이디 중복 확인",
-            description = "회원가입 시 아이디 중복 여부를 확인합니다."
+            summary = "Check for duplicate IDs",
+            description = "When registering as a member, we check for duplicate IDs."
     )
     @GetMapping({"/checkIdentifier"})
     public ApiResponse<?> checkIdentifier(@RequestParam String identifier) {
@@ -48,8 +49,8 @@ public abstract class AuthController<T extends BaseMember> {
     }
 
     @Operation(
-            summary = "이메일 중복 확인",
-            description = "회원가입 시 이메일 중복 여부를 확인합니다."
+            summary = "Check for duplicate emails",
+            description = "When registering as a member, we check for duplicate email addresses."
     )
     @GetMapping({"/check-email"})
     public ApiResponse<?> checkEmail(@RequestParam String email) {
@@ -58,8 +59,8 @@ public abstract class AuthController<T extends BaseMember> {
     }
 
     @Operation(
-            summary = "로그아웃",
-            description = "리프레시 토큰 쿠키를 삭제합니다."
+            summary = "log out",
+            description = "Delete the refresh token cookie."
     )
     @PostMapping({"/logout"})
     public ApiResponse<?> logout(HttpServletResponse response) {
@@ -68,9 +69,10 @@ public abstract class AuthController<T extends BaseMember> {
     }
 
     @Operation(
-            summary = "회원 탈퇴",
-            description = "UUID로 회원을 soft delete 합니다."
+            summary = "Cancel membership",
+            description = "Soft delete members by UUID."
     )
+
     @DeleteMapping({"/withdraw/{uuidMember}"})
     public ApiResponse<?> withdraw(@PathVariable UUID uuidMember, HttpServletResponse response) {
         this.signService.withdraw(uuidMember, response);

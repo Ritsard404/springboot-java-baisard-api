@@ -35,6 +35,9 @@ import java.util.*;
 )
 @SQLDelete(sql = "UPDATE base_member SET is_deleted = true, deleted_at = NOW() WHERE uuid_member = ?")
 @SQLRestriction("is_deleted = false")
+@Inheritance(
+        strategy = InheritanceType.JOINED
+)
 public class BaseMember extends BaseEntity {
 
     @Id

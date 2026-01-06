@@ -1,7 +1,7 @@
 package com.ritsard.baisard.domain.member.entity;
 
 
-import com.ritsard.baisard.domain.enums.PermissionType;
+import com.ritsard.baisard.domain.member.enums.PermissionType;
 import com.ritsard.baisard.file.entity.v2.ImageFileInfo;
 import com.ritsard.baisard.file.service.v4.FileLoadable;
 import com.ritsard.baisard.global.enums.AccessPathType;
@@ -89,8 +89,9 @@ public class Member extends BaseMember implements FileLoadable<ImageFileInfo> {
                 .map(String::toUpperCase)
                 .toList();
 
+        if (types.contains("SUPERADMIN")) return PermissionType.SUPERADMIN.getDescription();
         if (types.contains("ADMIN")) return PermissionType.ADMIN.getDescription();
-        if (types.contains("TEACHER")) return PermissionType.TEACHER.getDescription();
+        if (types.contains("CASHIER")) return PermissionType.CASHIER.getDescription();
         return PermissionType.USER.getDescription();
     }
 

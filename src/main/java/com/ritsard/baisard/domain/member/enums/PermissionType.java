@@ -1,4 +1,4 @@
-package com.ritsard.baisard.domain.enums;
+package com.ritsard.baisard.domain.member.enums;
 
 import com.ritsard.baisard.jwt.utils.permission.IPermissionType;
 import com.ritsard.baisard.jwt.utils.permission.PermissionTypeProvider;
@@ -10,8 +10,9 @@ import java.util.Arrays;
 @Getter
 @RequiredArgsConstructor
 public enum PermissionType implements PermissionTypeProvider {
+    SUPERADMIN("Super Admin"),
     ADMIN("Admin"),
-    TEACHER("Teacher"),
+    CASHIER("Cashier"),
     USER("User");
 
     private final String description;
