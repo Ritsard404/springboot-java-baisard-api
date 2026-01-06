@@ -1,8 +1,7 @@
-package com.ritsard.baisard.domain.inventory.dto.response;
+package com.ritsard.baisard.domain.inventory.dto.request;
 
 import com.ritsard.baisard.domain.inventory.enums.ItemType;
 import com.ritsard.baisard.domain.inventory.enums.VatType;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,12 +12,10 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Product DTO")
-public class ProductDto {
-    private UUID uuidProduct;
+@Builder
+public class ProductSaveDto {
     @NotBlank
     private String name;
 
@@ -40,13 +37,16 @@ public class ProductDto {
     @DecimalMin(value = "0.0", inclusive = true)
     private BigDecimal price;
 
+    @NotNull
     private Boolean isAvailable = true;
 
+    @NotNull
     private ItemType itemType = ItemType.RESALE;
 
+    @NotNull
     private VatType vatType = VatType.VATABLE;
 
     @NotNull
-    private UUID categoryId;
+    private UUID uuidCategory;
 
 }

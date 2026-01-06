@@ -2,13 +2,12 @@ package com.ritsard.baisard.domain.inventory.entity;
 
 import com.ritsard.baisard.base.entity.BaseEntity;
 import com.ritsard.baisard.utils.helper.UUIDManager;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -24,6 +23,10 @@ public class Category extends BaseEntity {
     @Builder.Default
     private UUID uuidCategory = UUIDManager.generateUUIDv7();
 
-    @Column(name = "category_name", length = 255)
+    @Column(name = "category_name")
     private String categoryName;
+
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Product> products = new ArrayList<>();
 }

@@ -1,0 +1,83 @@
+package com.ritsard.baisard.domain.inventory.entity;
+
+import com.ritsard.baisard.base.entity.BaseEntity;
+import com.ritsard.baisard.domain.inventory.enums.VatType;
+import com.ritsard.baisard.global.utils.Formats;
+import com.ritsard.baisard.utils.helper.UUIDManager;
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+@Entity
+@Getter
+@Setter
+@SuperBuilder
+@AllArgsConstructor
+@NoArgsConstructor
+@Table(name = "item")
+public class Item extends BaseEntity {
+
+    @Id
+    @Column(name = "uuid_item", nullable = false)
+    @Builder.Default
+    private UUID uuidItem = UUIDManager.generateUUIDv7();
+
+    @Column(name = "qty", precision = 19, scale = 4, nullable = false)
+    private BigDecimal qty;
+
+    @Column(name = "price", precision = 19, scale = 4, nullable = false)
+    private BigDecimal price;
+
+    @Column(name = "subtotal", precision = 19, scale = 4, nullable = false)
+    private BigDecimal subTotal;
+
+    @Column(name = "status", length = 50, nullable = false)
+    private String status;
+
+    @Column(name = "is_training_mode")
+    @Builder.Default
+    private Boolean isTrainingMode = false;
+
+
+    public String getQtyDisplay() {
+        if (qty == null) return "0";
+        String baseQty = qty.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) == 0
+                ? String.valueOf(qty.intValue())
+                : qty.setScale(2, BigDecimal.ROUND_HALF_UP).toString();
+        return "Returned".equalsIgnoreCase(status) ? "R" + baseQty : baseQty;
+    }
+
+
+    public String getDisplayNameWithPrice() {
+        if (category == null || category.getName() == null || price == null) return "";
+        return category.getName() + " @" + Formats.pesoFormat(price);
+    }
+
+
+    public String getDisplayPrice() {
+        if (price == null) return "0.00";
+        return Formats.pesoFormat(price);
+    }
+
+
+    public String getDisplaySubtotalVat() {
+        if (subTotal == null || category == null || category.getVatType() == null) return "0.00Z";
+
+        switch (category.getVatType()) {
+            case VATABLE:
+                return Formats.pesoFormat(subTotal) + "V";
+            case EXEMPT:
+                return Formats.pesoFormat(subTotal) + "E";
+            default:
+                return Formats.pesoFormat(subTotal) + "Z";
+        }
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uuid_product", nullable = false)
+    private Product category;
+
+}

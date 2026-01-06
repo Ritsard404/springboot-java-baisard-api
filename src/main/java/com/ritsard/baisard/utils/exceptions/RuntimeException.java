@@ -5,10 +5,17 @@ import lombok.Getter;
 
 @Getter
 public class RuntimeException extends java.lang.RuntimeException {
-    private ErrorCode errorCode;
+    private final ErrorCode errorCode;
 
-    public RuntimeException(String message, ErrorCode errorCode){
+    // Message + ErrorCode
+    public RuntimeException(String message, ErrorCode errorCode) {
         super(message);
+        this.errorCode = errorCode;
+    }
+
+    // Message + Cause + ErrorCode
+    public RuntimeException(String message, Throwable cause, ErrorCode errorCode) {
+        super(message, cause);
         this.errorCode = errorCode;
     }
 }

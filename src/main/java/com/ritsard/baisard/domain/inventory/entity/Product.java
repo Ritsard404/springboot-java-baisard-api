@@ -10,7 +10,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-import java.io.IOException;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,11 +29,11 @@ public class Product extends BaseEntity implements FileLoadable<ImageFileInfo> {
     @Builder.Default
     private UUID uuidProduct = UUIDManager.generateUUIDv7();
 
-    @Column(name = "prod_id", nullable = false, unique = true, length = 50)
-    @Builder.Default
-    private String prodId = "";
+//    @Column(name = "prod_id", nullable = false, unique = true, length = 50)
+//    @Builder.Default
+//    private String prodId = "";
 
-    @Column(name = "name", nullable = false, length = 255)
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "product_image_url", length = 500)
