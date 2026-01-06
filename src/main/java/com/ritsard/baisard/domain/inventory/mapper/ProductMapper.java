@@ -4,10 +4,17 @@ import com.ritsard.baisard.domain.inventory.dto.request.ProductSaveDto;
 import com.ritsard.baisard.domain.inventory.entity.Category;
 import com.ritsard.baisard.domain.inventory.entity.Product;
 import com.ritsard.baisard.global.utils.Formats;
+import com.ritsard.baisard.global.utils.ImageUtils;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
+@Component
+@RequiredArgsConstructor
 public class ProductMapper {
+    private final ImageUtils imageUtils;
+
     /**
      * Map DTO to new Product entity for creation.
      * Assumes category is already fetched from DB.
@@ -17,9 +24,8 @@ public class ProductMapper {
 
         return Product.builder()
                 .name(Formats.capitalize(dto.getName()))
-                .productImageUrl(dto.getProductImageUrl())
-                .barcode(Objects.requireNonNullElse(dto.getBarcode(), ""))
-                .baseUnit(dto.getBaseUnit())
+                .barcode(dto.getBarcode())
+                .baseUnit(dto.getBaseUnit().toUpperCase())
                 .quantity(dto.getQuantity())
                 .cost(dto.getCost())
                 .price(dto.getPrice())
@@ -38,7 +44,6 @@ public class ProductMapper {
         if (product == null || dto == null) return;
 
         product.setName(Formats.capitalize(dto.getName()));
-        product.setProductImageUrl(dto.getProductImageUrl());
         product.setBarcode(Objects.requireNonNullElse(dto.getBarcode(), ""));
         product.setBaseUnit(dto.getBaseUnit());
         product.setQuantity(dto.getQuantity());

@@ -9,6 +9,8 @@ import com.ritsard.baisard.utils.helper.UUIDManager;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 
 import java.math.BigDecimal;
@@ -22,7 +24,17 @@ import java.util.UUID;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "product")
+@SQLDelete(sql = "UPDATE category SET is_deleted = true, deleted_at = now() WHERE uuid_product = ?")
+@SQLRestriction("is_deleted = false")
+@Table(
+        name = "product",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_product_name_category",
+                        columnNames = {"name", "uuid_category"}
+                )
+        }
+)
 public class Product extends BaseEntity implements FileLoadable<ImageFileInfo> {
     @Id
     @Column(name = "uuid_product", nullable = false)

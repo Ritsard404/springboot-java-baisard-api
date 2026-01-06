@@ -40,10 +40,13 @@ public class ProductDto {
     @DecimalMin(value = "0.0", inclusive = true)
     private BigDecimal price;
 
+    @Builder.Default
     private Boolean isAvailable = true;
 
+    @Builder.Default
     private ItemType itemType = ItemType.RESALE;
 
+    @Builder.Default
     private VatType vatType = VatType.VATABLE;
 
     @NotNull
