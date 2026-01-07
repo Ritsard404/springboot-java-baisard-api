@@ -1,6 +1,5 @@
 package com.ritsard.baisard.domain.order.dto.request;
 
-import com.ritsard.baisard.domain.order.entity.Item;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
@@ -16,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "Pay Order Request DTO")
-public class PayOrderDto {
+public class OrderDto {
     @NotNull(message = "Cash tender amount is required")
     @DecimalMin(value = "0.0", message = "Cash tender amount must be non-negative")
     private BigDecimal cashTenderAmount;

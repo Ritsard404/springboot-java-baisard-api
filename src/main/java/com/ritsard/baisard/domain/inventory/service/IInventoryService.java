@@ -12,29 +12,30 @@ import java.util.UUID;
 
 public interface IInventoryService {
     //    Product Services
-    public Object getProducts(String keyword, String barcode, UUID uuidCategory,
-                              Integer page, Integer size, String sortBy, String direction);
+    Object getProducts(String keyword, String barcode, UUID uuidCategory,
+                       Integer page, Integer size, String sortBy, String direction);
 
-    public ProductDto getProduct(UUID uuidProduct);
-    public void stockProduct(UUID uuidProduct, BigDecimal qty);
+    ProductDto getProduct(UUID uuidProduct);
 
-    public void newProduct(ProductSaveDto productSaveDto);
+    void stockProduct(UUID uuidProduct, BigDecimal qty);
 
-    public void editProduct(UUID uuidProduct, ProductSaveDto productSaveDto);
+    void newProduct(ProductSaveDto productSaveDto);
 
-    public void deleteProduct(UUID uuidProduct);
+    void editProduct(UUID uuidProduct, ProductSaveDto productSaveDto);
+
+    void deleteProduct(UUID uuidProduct);
 
     // Category Services?
-    public List<CategoryDto> getCategories();
+    List<CategoryDto> getCategories();
 
-    public CategoryDto getCategory(UUID uuidCategory);
+    CategoryDto getCategory(UUID uuidCategory);
 
-    public void newCategory(CategoryDto categoryDto);
+    void newCategory(CategoryDto categoryDto);
 
-    public void updateCategory(UUID uuidCategory, CategoryDto categoryDto);
+    void updateCategory(UUID uuidCategory, CategoryDto categoryDto);
 
-    public void deleteCategory(UUID uuidCategory);
+    void deleteCategory(UUID uuidCategory);
 
     // Inventory Record
-    public void RecordInventoryTransaction(InventoryTransactionRequestDto dto);
+    void RecordInventoryTransaction(InventoryTransactionRequestDto dto);
 }

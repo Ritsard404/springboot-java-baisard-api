@@ -2,6 +2,7 @@ package com.ritsard.baisard.domain.order.entity;
 
 import com.ritsard.baisard.base.entity.BaseEntity;
 import com.ritsard.baisard.domain.member.entity.Member;
+import com.ritsard.baisard.domain.member.entity.PosTerminalInfo;
 import com.ritsard.baisard.domain.order.entity.enums.InvoiceStatusType;
 import com.ritsard.baisard.utils.helper.UUIDManager;
 import jakarta.persistence.*;
@@ -120,6 +121,10 @@ public class Invoice extends BaseEntity {
     /* =========================
        Relations
        ========================= */
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uuid_pos_terminal", nullable = false)
+    private PosTerminalInfo terminal;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)

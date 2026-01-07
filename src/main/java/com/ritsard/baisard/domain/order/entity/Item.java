@@ -2,7 +2,7 @@ package com.ritsard.baisard.domain.order.entity;
 
 import com.ritsard.baisard.base.entity.BaseEntity;
 import com.ritsard.baisard.domain.inventory.entity.Product;
-import com.ritsard.baisard.domain.inventory.enums.VatType;
+import com.ritsard.baisard.domain.order.entity.enums.InvoiceStatusType;
 import com.ritsard.baisard.global.utils.Formats;
 import com.ritsard.baisard.utils.helper.UUIDManager;
 import jakarta.persistence.*;
@@ -10,6 +10,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.UUID;
 
 @Entity
@@ -36,7 +37,7 @@ public class Item extends BaseEntity {
     private BigDecimal subTotal;
 
     @Column(name = "status", length = 50, nullable = false)
-    private String status;
+    private InvoiceStatusType status;
 
     @Column(name = "is_training_mode")
     @Builder.Default
@@ -45,10 +46,18 @@ public class Item extends BaseEntity {
 
     public String getQtyDisplay() {
         if (qty == null) return "0";
+
+        // Format quantity: integer if no decimal, else 2 decimals
         String baseQty = qty.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) == 0
                 ? String.valueOf(qty.intValue())
-                : qty.setScale(2, BigDecimal.ROUND_HALF_UP).toString();
-        return "Returned".equalsIgnoreCase(status) ? "R" + baseQty : baseQty;
+                : qty.setScale(2, RoundingMode.HALF_UP).toString();
+
+        // Prefix "R" if status is RETURNED
+        if (status == InvoiceStatusType.RETURNED) {
+            return "R" + baseQty;
+        }
+
+        return baseQty;
     }
 
 

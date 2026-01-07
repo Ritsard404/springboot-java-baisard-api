@@ -18,101 +18,141 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(
-        readOnly = true
-)
+@Transactional(readOnly = true)
 public class AuthManagerImpl<T extends BaseMember> implements AuthManager<T> {
+
     @Generated
     private static final Logger log = LoggerFactory.getLogger(AuthManagerImpl.class);
+
     private final BaseMemberRepository<T> memberRepository;
     private final LoggingService loggingService;
 
     public UUID getBaseMemberUuid() {
         UUID uuid = this.getUuidFromToken();
-        this.loggingService.logInfo("인증된 사용자 UUID 조회: " + String.valueOf(uuid));
-        return (UUID)this.memberRepository.findById(uuid).filter((member) -> !member.isDeleted()).map(BaseMember::getUuidMember).orElseThrow(() -> {
-            log.warn("유효하지 않은 사용자 또는 삭제된 계정: {}", uuid);
-            return new InvalidTokenRequestException();
-        });
+        this.loggingService.logInfo("Fetching authenticated user UUID: " + uuid);
+
+        return this.memberRepository.findById(uuid)
+                .filter(member -> !member.isDeleted())
+                .map(BaseMember::getUuidMember)
+                .orElseThrow(() -> {
+                    log.warn("Invalid user or deleted account: {}", uuid);
+                    return new InvalidTokenRequestException();
+                });
     }
 
     public T getMember() {
         UUID uuid = this.getUuidFromToken();
-        log.debug("사용자 조회 (기본 정보): {}", uuid);
-        return (T)(this.memberRepository.findWithCredentialsByUuid(uuid).orElseThrow(() -> {
-            log.warn("사용자를 찾을 수 없음: {}", uuid);
-            return new InvalidTokenRequestException();
-        }));
+        log.debug("Fetching user (basic information): {}", uuid);
+
+        return this.memberRepository.findWithCredentialsByUuid(uuid)
+                .orElseThrow(() -> {
+                    log.warn("User not found: {}", uuid);
+                    return new InvalidTokenRequestException();
+                });
     }
 
     public T getMemberWithAllDetails() {
         UUID uuid = this.getUuidFromToken();
-        log.debug("사용자 조회 (모든 정보): {}", uuid);
-        return (T)(this.memberRepository.findWithAllDetailsByUuid(uuid).orElseThrow(() -> {
-            log.warn("사용자를 찾을 수 없음 (전체 정보): {}", uuid);
-            return new InvalidTokenRequestException();
-        }));
+        log.debug("Fetching user (all details): {}", uuid);
+
+        return this.memberRepository.findWithAllDetailsByUuid(uuid)
+                .orElseThrow(() -> {
+                    log.warn("User not found (all details): {}", uuid);
+                    return new InvalidTokenRequestException();
+                });
     }
 
     public T getMemberWithPermissions() {
         UUID uuid = this.getUuidFromToken();
-        log.debug("사용자 조회 (권한 정보): {}", uuid);
-        return (T)(this.memberRepository.findWithPermissionsByUuid(uuid).orElseThrow(() -> {
-            log.warn("사용자를 찾을 수 없음 (권한 정보): {}", uuid);
-            return new InvalidTokenRequestException();
-        }));
+        log.debug("Fetching user (permissions): {}", uuid);
+
+        return this.memberRepository.findWithPermissionsByUuid(uuid)
+                .orElseThrow(() -> {
+                    log.warn("User not found (permissions): {}", uuid);
+                    return new InvalidTokenRequestException();
+                });
     }
 
     public T getMemberWithCredentials() {
         UUID uuid = this.getUuidFromToken();
-        log.debug("사용자 조회 (자격정보): {}", uuid);
-        return (T)(this.memberRepository.findWithCredentialsByUuid(uuid).orElseThrow(() -> {
-            log.warn("사용자를 찾을 수 없음 (자격정보): {}", uuid);
-            return new InvalidTokenRequestException();
-        }));
+        log.debug("Fetching user (credentials): {}", uuid);
+
+        return this.memberRepository.findWithCredentialsByUuid(uuid)
+                .orElseThrow(() -> {
+                    log.warn("User not found (credentials): {}", uuid);
+                    return new InvalidTokenRequestException();
+                });
     }
 
     @Transactional
     public void updateLastLoginTime() {
         T member = this.getMember();
         Instant now = Instant.now();
+
         member.setLastLoginAt(now);
         this.memberRepository.save(member);
-        log.info("마지막 로그인 시간 업데이트: userId={}, loginTime={}", member.getUuidMember(), now);
+
+        log.info(
+                "Last login time updated: userId={}, loginTime={}",
+                member.getUuidMember(),
+                now
+        );
     }
 
     public boolean isAuthenticated() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean authenticated = authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName());
-        log.debug("인증 상태 확인: {}", authenticated);
+
+        boolean authenticated =
+                authentication != null &&
+                        authentication.isAuthenticated() &&
+                        !"anonymousUser".equals(authentication.getName());
+
+        log.debug("Authentication status check: {}", authenticated);
         return authenticated;
     }
 
     public boolean isCurrentUser(UUID memberId) {
         if (!this.isAuthenticated()) {
-            log.debug("인증되지 않은 사용자");
+            log.debug("Unauthenticated user");
             return false;
-        } else {
-            try {
-                UUID currentUserId = this.getUuidFromToken();
-                boolean isMatch = currentUserId.equals(memberId);
-                log.debug("사용자 일치 확인: currentUser={}, targetUser={}, match={}", new Object[]{currentUserId, memberId, isMatch});
-                return isMatch;
-            } catch (InvalidTokenRequestException var4) {
-                log.debug("토큰에서 사용자 ID 추출 실패");
-                return false;
-            }
+        }
+
+        try {
+            UUID currentUserId = this.getUuidFromToken();
+            boolean isMatch = currentUserId.equals(memberId);
+
+            log.debug(
+                    "User match check: currentUser={}, targetUser={}, match={}",
+                    currentUserId,
+                    memberId,
+                    isMatch
+            );
+            return isMatch;
+        } catch (InvalidTokenRequestException e) {
+            log.debug("Failed to extract user ID from token");
+            return false;
         }
     }
 
     public boolean hasPermission(String permissionName) {
         try {
             T member = this.getMemberWithPermissions();
-            boolean hasPermission = member.getPermissions().stream().anyMatch((permission) -> permission.getPermissionType().equals(permissionName));
-            log.debug("권한 확인: userId={}, permission={}, hasPermission={}", new Object[]{member.getUuidMember(), permissionName, hasPermission});
+
+            boolean hasPermission = member.getPermissions()
+                    .stream()
+                    .anyMatch(permission ->
+                            permission.getPermissionType().equals(permissionName)
+                    );
+
+            log.debug(
+                    "Permission check: userId={}, permission={}, hasPermission={}",
+                    member.getUuidMember(),
+                    permissionName,
+                    hasPermission
+            );
             return hasPermission;
-        } catch (InvalidTokenRequestException var4) {
-            log.debug("권한 확인 실패 - 유효하지 않은 토큰");
+        } catch (InvalidTokenRequestException e) {
+            log.debug("Permission check failed - invalid token");
             return false;
         }
     }
@@ -120,11 +160,22 @@ public class AuthManagerImpl<T extends BaseMember> implements AuthManager<T> {
     public boolean hasRole(String roleName) {
         try {
             T member = this.getMemberWithPermissions();
-            boolean hasRole = member.getPermissions().stream().anyMatch((role) -> role.getPermissionType().equals(roleName));
-            log.debug("역할 확인: userId={}, role={}, hasRole={}", new Object[]{member.getUuidMember(), roleName, hasRole});
+
+            boolean hasRole = member.getPermissions()
+                    .stream()
+                    .anyMatch(role ->
+                            role.getPermissionType().equals(roleName)
+                    );
+
+            log.debug(
+                    "Role check: userId={}, role={}, hasRole={}",
+                    member.getUuidMember(),
+                    roleName,
+                    hasRole
+            );
             return hasRole;
-        } catch (InvalidTokenRequestException var4) {
-            log.debug("역할 확인 실패 - 유효하지 않은 토큰");
+        } catch (InvalidTokenRequestException e) {
+            log.debug("Role check failed - invalid token");
             return false;
         }
     }
@@ -136,32 +187,46 @@ public class AuthManagerImpl<T extends BaseMember> implements AuthManager<T> {
     public boolean isAccountActive() {
         try {
             T member = this.getMember();
+
             boolean isActive = member.isActive() && !member.isDeleted();
-            log.debug("계정 상태 확인: userId={}, isActive={}", member.getUuidMember(), isActive);
+
+            log.debug(
+                    "Account status check: userId={}, isActive={}",
+                    member.getUuidMember(),
+                    isActive
+            );
             return isActive;
-        } catch (InvalidTokenRequestException var3) {
-            log.debug("계정 상태 확인 실패 - 유효하지 않은 토큰");
+        } catch (InvalidTokenRequestException e) {
+            log.debug("Account status check failed - invalid token");
             return false;
         }
     }
 
     private UUID getUuidFromToken() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
         if (authentication != null && authentication.isAuthenticated()) {
             String name = authentication.getName();
 
             try {
                 UUID uuid = UUID.fromString(name);
-                log.debug("토큰에서 UUID 추출 성공: {}", uuid);
+                log.debug("Successfully extracted UUID from token: {}", uuid);
                 return uuid;
-            } catch (IllegalArgumentException var4) {
-                log.warn("토큰에서 UUID 추출 실패 - 유효하지 않은 형식: {}", name);
-                this.loggingService.logInfo("[경고] authentication.getName()이 UUID 아님: " + name);
+            } catch (IllegalArgumentException e) {
+                log.warn(
+                        "Failed to extract UUID from token - invalid format: {}",
+                        name
+                );
+                this.loggingService.logInfo(
+                        "[Warning] authentication.getName() is not a UUID: " + name
+                );
                 throw new InvalidTokenRequestException();
             }
-        } else {
-            log.debug("인증 정보가 없거나 인증되지 않음");
-            throw new InvalidTokenRequestException();
         }
+
+        log.debug("No authentication information or not authenticated");
+        throw new InvalidTokenRequestException();
     }
 }

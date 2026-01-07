@@ -13,9 +13,11 @@ import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -108,7 +110,9 @@ public class BaseMemberRepositoryImpl<T extends BaseMember> extends BaseQueryDsl
     }
 
     public Optional<T> findWithDetailsByIdentifier(String identifier) {
-        T result = (T) (((JPAQuery) ((JPAQuery) ((JPAQuery) ((JPAQuery) ((JPAQuery) this.queryFactory.selectFrom(this.member).leftJoin(this.member.permissions, this.permission)).fetchJoin()).leftJoin(this.member.loginCredentials, this.credential)).fetchJoin()).where(this.credential.identifier.eq(identifier).and(this.credential.isDeleted.isFalse()).and(this.isNotDeleted()))).fetchOne());
+        T result = (T) (((JPAQuery) ((JPAQuery) ((JPAQuery) ((JPAQuery) ((JPAQuery) this.queryFactory.selectFrom(this.member).leftJoin(this.member.permissions, this.permission)).fetchJoin()).leftJoin(this.member.loginCredentials, this.credential))
+                .fetchJoin())
+                .where(this.credential.identifier.eq(identifier).and(this.credential.isDeleted.isFalse()).and(this.isNotDeleted()))).fetchOne());
         return Optional.ofNullable(result);
     }
 
