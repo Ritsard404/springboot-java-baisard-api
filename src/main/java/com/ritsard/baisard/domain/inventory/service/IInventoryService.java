@@ -6,6 +6,7 @@ import com.ritsard.baisard.domain.inventory.dto.response.CategoryDto;
 import com.ritsard.baisard.domain.inventory.dto.response.ProductDto;
 import com.ritsard.baisard.domain.inventory.entity.Category;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ public interface IInventoryService {
                               Integer page, Integer size, String sortBy, String direction);
 
     public ProductDto getProduct(UUID uuidProduct);
+    public void stockProduct(UUID uuidProduct, BigDecimal qty);
 
     public void newProduct(ProductSaveDto productSaveDto);
 

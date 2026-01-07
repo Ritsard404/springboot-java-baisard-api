@@ -1,6 +1,7 @@
-package com.ritsard.baisard.domain.inventory.entity;
+package com.ritsard.baisard.domain.order.entity;
 
 import com.ritsard.baisard.base.entity.BaseEntity;
+import com.ritsard.baisard.domain.inventory.entity.Product;
 import com.ritsard.baisard.domain.inventory.enums.VatType;
 import com.ritsard.baisard.global.utils.Formats;
 import com.ritsard.baisard.utils.helper.UUIDManager;
@@ -52,8 +53,8 @@ public class Item extends BaseEntity {
 
 
     public String getDisplayNameWithPrice() {
-        if (category == null || category.getName() == null || price == null) return "";
-        return category.getName() + " @" + Formats.pesoFormat(price);
+        if (product == null || product.getName() == null || price == null) return "";
+        return product.getName() + " @" + Formats.pesoFormat(price);
     }
 
 
@@ -64,9 +65,9 @@ public class Item extends BaseEntity {
 
 
     public String getDisplaySubtotalVat() {
-        if (subTotal == null || category == null || category.getVatType() == null) return "0.00Z";
+        if (subTotal == null || product == null || product.getVatType() == null) return "0.00Z";
 
-        switch (category.getVatType()) {
+        switch (product.getVatType()) {
             case VATABLE:
                 return Formats.pesoFormat(subTotal) + "V";
             case EXEMPT:
@@ -78,6 +79,6 @@ public class Item extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uuid_product", nullable = false)
-    private Product category;
+    private Product product;
 
 }

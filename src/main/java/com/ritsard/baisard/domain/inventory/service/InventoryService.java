@@ -15,6 +15,7 @@ import com.ritsard.baisard.global.exception.ConflictException;
 import com.ritsard.baisard.global.utils.Formats;
 import com.ritsard.baisard.global.utils.ImageUtils;
 import com.ritsard.baisard.utils.exceptions.NotFoundException;
+import com.ritsard.baisard.utils.exceptions.files.InvalidFileTypeException;
 import com.ritsard.baisard.utils.helper.PageHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -104,6 +105,23 @@ public class InventoryService implements IInventoryService {
                 .vatType(existProduct.getVatType())
                 .categoryId(existProduct.getCategory() != null ? existProduct.getCategory().getUuidCategory() : null)
                 .build();
+    }
+
+    @Override
+    public void stockProduct(UUID uuidProduct, BigDecimal qty) {
+
+        if (qty == null || qty.compareTo(BigDecimal.ZERO) == 0)
+            throw new ConflictException("Quantity must not be zero.");
+
+        if (!productRepository.existsById(uuidProduct))
+            throw new NotFoundException("Product not found.");
+
+        productRepository.incrementStock(uuidProduct, qty);
+
+//                auditLog.addManagerAudit(
+//                        String.format("Stock IN: %s units added to product '%s' (Ref: %s)",
+//                                qty, product.getName(), dto.getReference())
+//                );
     }
 
     @Override

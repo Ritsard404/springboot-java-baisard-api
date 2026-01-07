@@ -11,7 +11,6 @@ import com.ritsard.baisard.domain.inventory.enums.InventoryTransactionType;
 import com.ritsard.baisard.domain.inventory.repository.CategoryRepository;
 import com.ritsard.baisard.domain.inventory.repository.InventoryRepository;
 import com.ritsard.baisard.domain.inventory.repository.ProductRepository;
-import com.ritsard.baisard.domain.inventory.service.IInventoryService;
 import com.ritsard.baisard.domain.inventory.service.InventoryService;
 import com.ritsard.baisard.global.exception.ConflictException;
 import com.ritsard.baisard.global.utils.ImageUtils;
@@ -30,7 +29,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -225,6 +223,64 @@ public class InventoryServiceTest {
             verify(productRepository).findById(testUuid);
             verify(productRepository).save(testProduct);
         }
+
+        @Test
+        @DisplayName("Should stock product successfully (IN)")
+        void shouldStockProductSuccessfully() {
+            // Arrange
+            BigDecimal stockQty = new BigDecimal("5");
+            when(productRepository.existsById(testUuid)).thenReturn(true);
+
+            // Act
+            inventoryService.stockProduct(testUuid, stockQty);
+
+            // Assert
+            verify(productRepository).existsById(testUuid);
+            verify(productRepository).incrementStock(testUuid, stockQty);
+        }
+
+        @Test
+        @DisplayName("Should subtract stock when quantity is negative")
+        void shouldSubtractStockSuccessfully() {
+            // Arrange
+            BigDecimal stockQty = new BigDecimal("-3");
+            when(productRepository.existsById(testUuid)).thenReturn(true);
+
+            // Act
+            inventoryService.stockProduct(testUuid, stockQty);
+
+            // Assert
+            verify(productRepository).existsById(testUuid);
+            verify(productRepository).incrementStock(testUuid, stockQty);
+        }
+
+        @Test
+        @DisplayName("Should throw NotFoundException when stocking non-existing product")
+        void shouldThrowNotFoundExceptionWhenStockingInvalidProduct() {
+            // Arrange
+            when(productRepository.existsById(testUuid)).thenReturn(false);
+
+            // Act & Assert
+            assertThrows(
+                    NotFoundException.class,
+                    () -> inventoryService.stockProduct(testUuid, BigDecimal.ONE)
+            );
+
+            verify(productRepository).existsById(testUuid);
+            verify(productRepository, never()).incrementStock(any(), any());
+        }
+
+        @Test
+        @DisplayName("Should throw ValidationException when quantity is zero")
+        void shouldThrowValidationExceptionForZeroQuantity() {
+            assertThrows(
+                    ConflictException.class,
+                    () -> inventoryService.stockProduct(testUuid, BigDecimal.ZERO)
+            );
+
+            verifyNoInteractions(productRepository);
+        }
+
     }
 
     @Nested

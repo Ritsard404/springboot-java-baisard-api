@@ -4,10 +4,12 @@ import com.ritsard.baisard.domain.inventory.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Repository
@@ -25,11 +27,14 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
             "AND (:barcode IS NULL OR p.barcode = :barcode) " +
             "AND (:uuidCategory IS NULL OR p.category.uuidCategory = :uuidCategory) " +
             "AND p.isDeleted = false")
-
     Page<Product> findProductsWithConditions(
             @Param("keyword") String keyword,
             @Param("barcode") String barcode,
             @Param("uuidCategory") UUID uuidCategory,
             Pageable pageable
     );
+
+    @Modifying
+    @Query("UPDATE Product p SET p.quantity = p.quantity + :qty WHERE p.uuid_product = :uuid_product")
+    void incrementStock(@Param("uuid_product") UUID uuidProduct, @Param("qty") BigDecimal qty);
 }
