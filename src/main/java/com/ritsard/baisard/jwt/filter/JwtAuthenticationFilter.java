@@ -130,10 +130,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private void setAuthentication(UUID userId, String accessToken) {
         List<GrantedAuthority> authorities = (List) this.tokenProvider.getAuthoritiesFromToken(accessToken).stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
-        this.loggingService.logInfo("[setAuthentication] Authentication Settings: userId=" + String.valueOf(userId));
+        this.loggingService.logInfo("[setAuthentication] 인증 설정: userId=" + String.valueOf(userId));
         UserPrincipal userPrincipal = new UserPrincipal(userId, authorities, userId.toString());
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userPrincipal, (Object) null, authorities));
         this.loggingService.logInfo("[확인] SecurityContext의 Authentication name: " + SecurityContextHolder.getContext().getAuthentication().getName());
+        log.info("SecurityContext authorities: " +
+                SecurityContextHolder.getContext().getAuthentication().getAuthorities());
+
     }
 
     private String resolveAccessToken(HttpServletRequest request) {

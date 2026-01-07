@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -38,10 +39,10 @@ public class SecurityConfig implements WebMvcConfigurer {
 
         return List.of(
                 "/swagger-ui/**",
-                "/**",
-//                "/v3/**",
+//                "/**",
+                "/v3/**",
                 "/api/documents/**",
-//                "/api/images/**",
+                "/api/images/**",
                 basePath + "/auth/**",
                 basePath + "/public/**"
 //                basePath + "/auth/login",
@@ -92,7 +93,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                     authorize.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                     permitAllPaths().forEach(path -> authorize.requestMatchers(path).permitAll());
 
-                    // 권한별 접근 제어
+                    // Access control by permission
                     authorize
                             .requestMatchers(basePath + "/admin/**").hasAuthority("ADMIN")
                             .requestMatchers(basePath + "/common/**").authenticated()
@@ -113,6 +114,12 @@ public class SecurityConfig implements WebMvcConfigurer {
         return http.build();
     }
 
+    // BCrypt encoder for password encryption
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -120,7 +127,7 @@ public class SecurityConfig implements WebMvcConfigurer {
         // Allow all origins
         configuration.setAllowedOriginPatterns(List.of("*"));
 
-        // 허용할 프론트엔드 도메인 목록
+        // List of allowed frontend domains
 //        configuration.setAllowedOrigins(List.of(
 //                "http://localhost:3000",
 //                "http://localhost:3001",

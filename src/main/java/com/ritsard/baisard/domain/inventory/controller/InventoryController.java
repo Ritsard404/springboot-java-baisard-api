@@ -24,13 +24,14 @@ import java.util.UUID;
 @RequestMapping("/inventory")
 @RequiredArgsConstructor
 @Tag(name = "Inventory Management API", description = "Manage products, categories, and inventory transactions")
-@PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
+//@PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
 public class InventoryController implements FileCrudable<Product, ImageFileInfo> {
     private final IInventoryService inventoryService;// ==================== PRODUCT ENDPOINTS ====================
 
     @GetMapping("/products")
     @Operation(summary = "Get product list", description = "Retrieve paginated and filtered product list")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
+//    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ApiResponse<?> getProducts(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String barcode,

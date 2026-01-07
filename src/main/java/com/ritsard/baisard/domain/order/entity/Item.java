@@ -90,4 +90,7 @@ public class Item extends BaseEntity {
     @JoinColumn(name = "uuid_product", nullable = false)
     private Product product;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uuid_invoice", nullable = false)
+    private Invoice invoice;
 }

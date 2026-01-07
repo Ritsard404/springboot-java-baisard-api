@@ -31,9 +31,9 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
      * @return The highest invoice number, or null if no invoices exist
      */
     @Query("""
-                SELECT MAX(i.invoiceNumber) 
-                FROM Invoice i 
-                WHERE i.terminal.uuid_pos_terminal = :terminalId 
+                SELECT MAX(i.invoiceNumber)
+                FROM Invoice i
+                WHERE i.terminal.uuidPosTerminal = :terminalId
                 AND i.isTrainMode = :isTrainMode
                 AND i.isDeleted = false
             """)
@@ -42,19 +42,20 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
             @Param("isTrainMode") boolean isTrainMode
     );
 
-    /**
-     * Optional: Get count of invoices for a terminal (useful for Z-reading)
-     */
-    @Query("""
-                SELECT COUNT(i) 
-                FROM Invoice i 
-                WHERE i.terminal.uuidPosTerminal = :terminalId 
-                AND i.isTrainMode = :isTrainMode
-                AND i.isDeleted = false
-                AND i.status = 'PAID'
-            """)
-    Long countPaidInvoicesByTerminal(
-            @Param("terminalId") UUID terminalId,
-            @Param("isTrainMode") boolean isTrainMode
-    );
+
+//    /**
+//     * Optional: Get count of invoices for a terminal (useful for Z-reading)
+//     */
+//    @Query("""
+//                SELECT COUNT(i)
+//                FROM Invoice i
+//                WHERE i.terminal.uuidPosTerminal = :terminalId
+//                AND i.isTrainMode = :isTrainMode
+//                AND i.isDeleted = false
+//                AND i.status = 'PAID'
+//            """)
+//    Long countPaidInvoicesByTerminal(
+//            @Param("terminalId") UUID terminalId,
+//            @Param("isTrainMode") boolean isTrainMode
+//    );
 }

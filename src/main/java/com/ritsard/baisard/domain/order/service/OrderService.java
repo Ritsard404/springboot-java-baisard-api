@@ -21,6 +21,7 @@ import com.ritsard.baisard.domain.order.repository.InvoiceRepository;
 import com.ritsard.baisard.domain.order.repository.SaleTypeRepository;
 import com.ritsard.baisard.global.exception.ConflictException;
 import com.ritsard.baisard.global.utils.Formats;
+import com.ritsard.baisard.jwt.repository.member.BaseMemberRepository;
 import com.ritsard.baisard.jwt.repository.member.BaseMemberRepositoryCustom;
 import com.ritsard.baisard.jwt.utils.AuthManager;
 import com.ritsard.baisard.utils.exceptions.NotFoundException;
@@ -49,7 +50,7 @@ public class OrderService implements IOrderService {
     private final MemberRepository memberRepository;
     private final PosTerminalInfoRepository terminalRepository;
     private final AuthManager<Member> authManager;
-    private final BaseMemberRepositoryCustom<Member> memberBaseMemberRepositoryCustom;
+    private final BaseMemberRepository<Member> memberBaseMemberRepository;
 
     @Override
     public void payOrder(OrderDto orderDto) {
@@ -103,7 +104,7 @@ public class OrderService implements IOrderService {
     @Override
     public void cancelOrder(OrderDto orderDto, String managerIdentifier, String reason) {
         // 1. Validate manager
-        Member manager = memberBaseMemberRepositoryCustom.findWithDetailsByIdentifier(managerIdentifier)
+        Member manager = memberBaseMemberRepository.findWithDetailsByIdentifier(managerIdentifier)
                 .orElseThrow(() -> new NotFoundException("Manager not found"));
 
         if (!hasManagerPrivileges(manager)) {

@@ -109,7 +109,7 @@ public class TokenProviderImpl implements TokenProvider {
             jweObject.encrypt(new DirectEncrypter(this.jweKey));
             return jweObject.serialize();
         } catch (Exception e) {
-            throw new RuntimeException("JWE 생성 오류", e);
+            throw new RuntimeException("JWE Generation error", e);
         }
     }
 

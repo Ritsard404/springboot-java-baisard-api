@@ -35,6 +35,7 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     );
 
     @Modifying
-    @Query("UPDATE Product p SET p.quantity = p.quantity + :qty WHERE p.uuid_product = :uuid_product")
-    void incrementStock(@Param("uuid_product") UUID uuidProduct, @Param("qty") BigDecimal qty);
+    @Query("UPDATE Product p SET p.quantity = p.quantity + :qty WHERE p.uuidProduct = :uuidProduct")
+    void incrementStock(@Param("uuidProduct") UUID uuidProduct, @Param("qty") BigDecimal qty);
+
 }
