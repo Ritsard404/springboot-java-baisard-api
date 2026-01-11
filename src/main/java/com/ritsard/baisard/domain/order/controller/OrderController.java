@@ -2,6 +2,7 @@ package com.ritsard.baisard.domain.order.controller;
 
 import com.ritsard.baisard.domain.order.dto.request.OrderDto;
 import com.ritsard.baisard.domain.order.service.IOrderService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/order")
 @RequiredArgsConstructor
+@Tag(name = "Order Management API", description = "Manage pay and cancel transactions")
 public class OrderController {
 
     private final IOrderService orderService;

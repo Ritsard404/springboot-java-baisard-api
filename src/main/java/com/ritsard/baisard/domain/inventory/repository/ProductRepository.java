@@ -1,5 +1,6 @@
 package com.ritsard.baisard.domain.inventory.repository;
 
+import com.ritsard.baisard.domain.inventory.dto.response.ProductDto;
 import com.ritsard.baisard.domain.inventory.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,17 +23,48 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
             UUID uuidProduct
     );
 
-    @Query("SELECT p FROM Product p " +
-            "WHERE (:keyword IS NULL OR LOWER(p.name) LIKE %:keyword% OR LOWER(p.barcode) LIKE %:keyword%) " +
-            "AND (:barcode IS NULL OR p.barcode = :barcode) " +
-            "AND (:uuidCategory IS NULL OR p.category.uuidCategory = :uuidCategory) " +
-            "AND p.isDeleted = false")
-    Page<Product> findProductsWithConditions(
+//    @Query("SELECT p FROM Product p " +
+//            "WHERE (:keyword IS NULL OR LOWER(p.name) LIKE %:keyword% OR LOWER(p.barcode) LIKE %:keyword%) " +
+//            "AND (:barcode IS NULL OR p.barcode = :barcode) " +
+//            "AND (:uuidCategory IS NULL OR p.category.uuidCategory = :uuidCategory) " +
+//            "AND p.isDeleted = false")
+//    Page<Product> findProductsWithConditions(
+//            @Param("keyword") String keyword,
+//            @Param("barcode") String barcode,
+//            @Param("uuidCategory") UUID uuidCategory,
+//            Pageable pageable
+//    );
+
+    @Query("""
+                SELECT new com.ritsard.baisard.domain.inventory.dto.response.ProductDto(
+                    p.uuidProduct,
+                    p.name,
+                    p.productImageUrl,
+                    p.barcode,
+                    p.baseUnit,
+                    p.quantity,
+                    p.cost,
+                    p.price,
+                    p.isAvailable,
+                    p.itemType,
+                    p.vatType,
+                    p.category.uuidCategory
+                )
+                FROM Product p
+                WHERE (:keyword IS NULL 
+                       OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) 
+                       OR LOWER(p.barcode) LIKE LOWER(CONCAT('%', :keyword, '%')))
+                  AND (:barcode IS NULL OR p.barcode = :barcode)
+                  AND (:uuidCategory IS NULL OR p.category.uuidCategory = :uuidCategory)
+                  AND p.isDeleted = false
+            """)
+    Page<ProductDto> findProductsWithConditions(
             @Param("keyword") String keyword,
             @Param("barcode") String barcode,
             @Param("uuidCategory") UUID uuidCategory,
             Pageable pageable
     );
+
 
     @Modifying
     @Query("UPDATE Product p SET p.quantity = p.quantity + :qty WHERE p.uuidProduct = :uuidProduct")

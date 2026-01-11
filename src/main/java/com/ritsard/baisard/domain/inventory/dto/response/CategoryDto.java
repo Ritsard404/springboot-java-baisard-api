@@ -12,5 +12,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Schema(description = "Category DTO")
 public class CategoryDto {
+    private UUID uuidCategory;
     private String categoryName;
 }

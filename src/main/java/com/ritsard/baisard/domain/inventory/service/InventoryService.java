@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -57,33 +58,15 @@ public class InventoryService implements IInventoryService {
         // Normalize keyword to lowercase for JPQL
         String keywordFilter = keyword != null ? keyword.toLowerCase() : null;
 
-        Page<Product> products = productRepository.findProductsWithConditions(
-                keywordFilter,
-                barcode,
-                uuidCategory,
-                pageable
-        );
+        Page<ProductDto> products =
+                productRepository.findProductsWithConditions(
+                        keywordFilter,
+                        barcode,
+                        uuidCategory,
+                        pageable
+                );
 
-        // Map to DTO
-        AtomicInteger counter = new AtomicInteger(pageNumber * pageSize + 1);
-
-        return PageHelper.toPageResponse(
-                products,
-                product -> ProductDto.builder()
-                        .uuidProduct(product.getUuidProduct())
-                        .name(product.getName())
-                        .productImageUrl(product.getProductImageUrl())
-                        .barcode(product.getBarcode())
-                        .baseUnit(product.getBaseUnit())
-                        .quantity(product.getQuantity())
-                        .cost(product.getCost())
-                        .price(product.getPrice())
-                        .isAvailable(product.getIsAvailable())
-                        .itemType(product.getItemType())
-                        .vatType(product.getVatType())
-                        .categoryId(product.getCategory() != null ? product.getCategory().getUuidCategory() : null)
-                        .build()
-        );
+        return PageHelper.toPageResponse(products, Function.identity());
     }
 
     @Override
@@ -206,19 +189,13 @@ public class InventoryService implements IInventoryService {
 
     @Override
     public List<CategoryDto> getCategories() {
-        return categoryRepository
-                .findAll(Sort.by(Sort.Direction.ASC, "name"))
-                .stream()
-                .map(c -> new CategoryDto(c.getCategoryName()))
-                .toList();
+        return categoryRepository.findAllDto();
     }
 
     @Override
     public CategoryDto getCategory(UUID uuidCategory) {
-
-        Category category = categoryRepository.findById(uuidCategory)
+        return categoryRepository.findDtoById(uuidCategory)
                 .orElseThrow(() -> new NotFoundException("Category not found"));
-        return new CategoryDto(category.getCategoryName());
     }
 
     @Override

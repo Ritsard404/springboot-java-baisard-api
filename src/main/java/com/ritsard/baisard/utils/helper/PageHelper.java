@@ -19,15 +19,15 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 페이징 및 DTO 변환을 지원하는 유틸리티 클래스
+ * Utility class for pagination and DTO conversion
  *
- * <p>Entity에서 DTO로 변환하면서 페이징 정보를 포함한 응답을 생성하거나,
- * 일반 List 변환을 수행합니다.</p>
+ * <p>Converts Entity to DTO while creating responses that include pagination information,
+ * or performs general List conversions.</p>
  *
- * <p>두 가지 변환 방식을 지원합니다:</p>
+ * <p>Supports two conversion methods:</p>
  * <ul>
- *   <li>함수 전달 방식: {@code MessageDto::from} 형태로 변환 함수를 직접 전달</li>
- *   <li>리플렉션 방식: {@code MessageDto.class} 형태로 DTO 클래스를 전달하여 {@code from()} 메서드를 자동 탐색</li>
+ *   <li>Function passing: Directly pass a conversion function in the form of {@code MessageDto::from}</li>
+ *   <li>Reflection: Pass a DTO class in the form of {@code MessageDto.class} to automatically discover the {@code from()} method</li>
  * </ul>
  *
  * @author lodong-utils-module
@@ -37,12 +37,12 @@ import java.util.stream.Collectors;
 public class PageHelper {
 
     /**
-     * 페이징 응답을 생성합니다 (함수 전달 방식)
+     * Creates a paged response (function passing method)
      *
-     * <p>Page&lt;Entity&gt;를 받아서 각 Entity를 DTO로 변환하고,
-     * 페이징 정보와 함께 Map 형태의 응답 객체를 반환합니다.</p>
+     * <p>Takes a Page&lt;Entity&gt;, converts each Entity to a DTO,
+     * and returns a response object in Map form with pagination information.</p>
      *
-     * <p><strong>사용 예시:</strong></p>
+     * <p><strong>Usage example:</strong></p>
      * <pre>
      * {@code
      * Page<Message> messagePage = messageRepository.findAll(pageable);
@@ -51,23 +51,23 @@ public class PageHelper {
      * }
      * </pre>
      *
-     * @param <E>        Entity 타입
-     * @param <D>        DTO 타입
-     * @param entityPage 변환할 Page&lt;Entity&gt; 객체
-     * @param converter  Entity를 DTO로 변환하는 함수 (예: {@code MessageDto::from})
-     * @return 페이징 정보가 포함된 Map 객체
+     * @param <E>        Entity type
+     * @param <D>        DTO type
+     * @param entityPage Page&lt;Entity&gt; object to convert
+     * @param converter  Function to convert Entity to DTO (e.g., {@code MessageDto::from})
+     * @return Map object containing pagination information
      * <ul>
-     *   <li>{@code content}: 변환된 DTO List</li>
-     *   <li>{@code totalElements}: 전체 요소 수</li>
-     *   <li>{@code totalPages}: 전체 페이지 수</li>
-     *   <li>{@code currentPage}: 현재 페이지 (0부터 시작)</li>
-     *   <li>{@code pageSize}: 페이지 크기</li>
-     *   <li>{@code first}: 첫 페이지 여부</li>
-     *   <li>{@code last}: 마지막 페이지 여부</li>
-     *   <li>{@code hasNext}: 다음 페이지 존재 여부</li>
-     *   <li>{@code hasPrevious}: 이전 페이지 존재 여부</li>
+     *   <li>{@code content}: Converted DTO List</li>
+     *   <li>{@code totalElements}: Total number of elements</li>
+     *   <li>{@code totalPages}: Total number of pages</li>
+     *   <li>{@code currentPage}: Current page (starts from 0)</li>
+     *   <li>{@code pageSize}: Page size</li>
+     *   <li>{@code first}: Whether it's the first page</li>
+     *   <li>{@code last}: Whether it's the last page</li>
+     *   <li>{@code hasNext}: Whether next page exists</li>
+     *   <li>{@code hasPrevious}: Whether previous page exists</li>
      * </ul>
-     * @throws RuntimeException 변환 과정에서 오류가 발생한 경우
+     * @throws RuntimeException if an error occurs during conversion
      */
     public static <E, D> Object toPageResponse(Page<E> entityPage, Function<E, D> converter) {
         List<D> dtoList = entityPage.getContent().stream()
@@ -78,18 +78,18 @@ public class PageHelper {
     }
 
     /**
-     * 페이징 응답을 생성합니다 (리플렉션 방식)
+     * Creates a paged response (reflection method)
      *
-     * <p>Page&lt;Entity&gt;를 받아서 DTO 클래스의 {@code from()} 메서드를 자동으로 탐색하여
-     * 각 Entity를 DTO로 변환하고, 페이징 정보와 함께 Map 형태의 응답 객체를 반환합니다.</p>
+     * <p>Takes a Page&lt;Entity&gt;, automatically discovers the {@code from()} method of the DTO class
+     * to convert each Entity to a DTO, and returns a response object in Map form with pagination information.</p>
      *
-     * <p><strong>DTO 클래스 요구사항:</strong></p>
+     * <p><strong>DTO class requirements:</strong></p>
      * <ul>
-     *   <li>{@code public static DTO from(Entity entity)} 메서드가 존재해야 함</li>
-     *   <li>메서드는 정확히 1개의 파라미터를 가져야 함</li>
+     *   <li>Must have a {@code public static DTO from(Entity entity)} method</li>
+     *   <li>Method must have exactly 1 parameter</li>
      * </ul>
      *
-     * <p><strong>사용 예시:</strong></p>
+     * <p><strong>Usage example:</strong></p>
      * <pre>
      * {@code
      * Page<Message> messagePage = messageRepository.findAll(pageable);
@@ -98,12 +98,12 @@ public class PageHelper {
      * }
      * </pre>
      *
-     * @param <E>        Entity 타입
-     * @param <D>        DTO 타입
-     * @param entityPage 변환할 Page&lt;Entity&gt; 객체
-     * @param dtoClass   DTO 클래스 (예: {@code MessageDto.class})
-     * @return 페이징 정보가 포함된 Map 객체 (구조는 함수 전달 방식과 동일)
-     * @throws RuntimeException DTO 클래스에 {@code from()} 메서드가 없거나 변환 실패 시
+     * @param <E>        Entity type
+     * @param <D>        DTO type
+     * @param entityPage Page&lt;Entity&gt; object to convert
+     * @param dtoClass   DTO class (e.g., {@code MessageDto.class})
+     * @return Map object containing pagination information (structure is the same as the function passing method)
+     * @throws RuntimeException if the DTO class doesn't have a {@code from()} method or conversion fails
      * @see #toPageResponse(Page, Function)
      */
     @SuppressWarnings("unchecked")
@@ -116,7 +116,7 @@ public class PageHelper {
                         try {
                             return (D) fromMethod.invoke(null, entity);
                         } catch (Exception e) {
-                            throw new RuntimeException("DTO 변환 실패: " + entity.getClass().getSimpleName() +
+                            throw new RuntimeException("DTO Conversion failed: " + entity.getClass().getSimpleName() +
                                     " -> " + dtoClass.getSimpleName(), e);
                         }
                     })
@@ -125,16 +125,16 @@ public class PageHelper {
             return buildPageResponse(dtoList, entityPage);
 
         } catch (Exception e) {
-            throw new RuntimeException("페이지 응답 생성 실패: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to create page response: " + e.getMessage(), e);
         }
     }
 
     /**
-     * Entity List를 DTO List로 변환합니다 (함수 전달 방식)
+     * Converts Entity List to DTO List (function passing method)
      *
-     * <p>페이징이 아닌 일반 List&lt;Entity&gt;를 List&lt;DTO&gt;로 변환합니다.</p>
+     * <p>Converts a general List&lt;Entity&gt; (not paged) to List&lt;DTO&gt;.</p>
      *
-     * <p><strong>사용 예시:</strong></p>
+     * <p><strong>Usage example:</strong></p>
      * <pre>
      * {@code
      * List<Message> messages = messageRepository.findTop10ByOrderByCreatedAtDesc();
@@ -143,12 +143,12 @@ public class PageHelper {
      * }
      * </pre>
      *
-     * @param <E>        Entity 타입
-     * @param <D>        DTO 타입
-     * @param entityList 변환할 Entity List
-     * @param converter  Entity를 DTO로 변환하는 함수 (예: {@code MessageDto::from})
-     * @return 변환된 DTO List
-     * @throws RuntimeException 변환 과정에서 오류가 발생한 경우
+     * @param <E>        Entity type
+     * @param <D>        DTO type
+     * @param entityList Entity List to convert
+     * @param converter  Function to convert Entity to DTO (e.g., {@code MessageDto::from})
+     * @return Converted DTO List
+     * @throws RuntimeException if an error occurs during conversion
      */
     public static <E, D> List<D> toList(List<E> entityList, Function<E, D> converter) {
         return entityList.stream()
@@ -157,18 +157,18 @@ public class PageHelper {
     }
 
     /**
-     * Entity List를 DTO List로 변환합니다 (리플렉션 방식)
+     * Converts Entity List to DTO List (reflection method)
      *
-     * <p>페이징이 아닌 일반 List&lt;Entity&gt;를 DTO 클래스의 {@code from()} 메서드를
-     * 자동으로 탐색하여 List&lt;DTO&gt;로 변환합니다.</p>
+     * <p>Converts a general List&lt;Entity&gt; (not paged) to List&lt;DTO&gt;
+     * by automatically discovering the {@code from()} method of the DTO class.</p>
      *
-     * <p><strong>DTO 클래스 요구사항:</strong></p>
+     * <p><strong>DTO class requirements:</strong></p>
      * <ul>
-     *   <li>{@code public static DTO from(Entity entity)} 메서드가 존재해야 함</li>
-     *   <li>메서드는 정확히 1개의 파라미터를 가져야 함</li>
+     *   <li>Must have a {@code public static DTO from(Entity entity)} method</li>
+     *   <li>Method must have exactly 1 parameter</li>
      * </ul>
      *
-     * <p><strong>사용 예시:</strong></p>
+     * <p><strong>Usage example:</strong></p>
      * <pre>
      * {@code
      * List<Message> messages = messageRepository.findTop10ByOrderByCreatedAtDesc();
@@ -177,12 +177,12 @@ public class PageHelper {
      * }
      * </pre>
      *
-     * @param <E>        Entity 타입
-     * @param <D>        DTO 타입
-     * @param entityList 변환할 Entity List
-     * @param dtoClass   DTO 클래스 (예: {@code MessageDto.class})
-     * @return 변환된 DTO List
-     * @throws RuntimeException DTO 클래스에 {@code from()} 메서드가 없거나 변환 실패 시
+     * @param <E>        Entity type
+     * @param <D>        DTO type
+     * @param entityList Entity List to convert
+     * @param dtoClass   DTO class (e.g., {@code MessageDto.class})
+     * @return Converted DTO List
+     * @throws RuntimeException if the DTO class doesn't have a {@code from()} method or conversion fails
      * @see #toList(List, Function)
      */
     @SuppressWarnings("unchecked")
@@ -195,25 +195,25 @@ public class PageHelper {
                         try {
                             return (D) fromMethod.invoke(null, entity);
                         } catch (Exception e) {
-                            throw new RuntimeException("DTO 변환 실패", e);
+                            throw new RuntimeException("DTO conversion failed", e);
                         }
                     })
                     .collect(Collectors.toList());
 
         } catch (Exception e) {
-            throw new RuntimeException("리스트 변환 실패: " + e.getMessage(), e);
+            throw new RuntimeException("List conversion failed: " + e.getMessage(), e);
         }
     }
 
     /**
-     * 페이징 응답 구조를 생성합니다
+     * Creates a paged response structure
      *
-     * <p>변환된 DTO List와 원본 Page 객체를 받아서 페이징 정보가 포함된 Map을 생성합니다.</p>
+     * <p>Takes the converted DTO List and the original Page object to create a Map containing pagination information.</p>
      *
-     * @param <D>     DTO 타입
-     * @param content 변환된 DTO List
-     * @param page    원본 Page 객체 (페이징 메타데이터 추출용)
-     * @return 페이징 정보가 포함된 Map 객체
+     * @param <D>     DTO type
+     * @param content Converted DTO List
+     * @param page    Original Page object (for extracting pagination metadata)
+     * @return Map object containing pagination information
      */
     private static <D> PagedResponseDto<D> buildPageResponse(List<D> content, Page<?> page) {
         PageInfo pageInfo = new PageInfo(
@@ -232,18 +232,18 @@ public class PageHelper {
 
 
     /**
-     * DTO 클래스에서 {@code from()} 메서드를 찾습니다
+     * Finds the {@code from()} method in the DTO class
      *
-     * <p>리플렉션을 사용하여 다음 조건을 만족하는 메서드를 탐색합니다:</p>
+     * <p>Uses reflection to search for a method that satisfies the following conditions:</p>
      * <ul>
-     *   <li>메서드명이 "from"</li>
-     *   <li>static 메서드</li>
-     *   <li>파라미터가 정확히 1개</li>
+     *   <li>Method name is "from"</li>
+     *   <li>Is a static method</li>
+     *   <li>Has exactly 1 parameter</li>
      * </ul>
      *
-     * @param dtoClass DTO 클래스
-     * @return 찾은 {@code from()} 메서드
-     * @throws RuntimeException 조건을 만족하는 {@code from()} 메서드를 찾을 수 없는 경우
+     * @param dtoClass DTO class
+     * @return The found {@code from()} method
+     * @throws RuntimeException if a {@code from()} method satisfying the conditions cannot be found
      */
     private static Method findFromMethod(Class<?> dtoClass) {
         Method[] methods = dtoClass.getDeclaredMethods();
@@ -257,6 +257,6 @@ public class PageHelper {
             }
         }
 
-        throw new RuntimeException(dtoClass.getSimpleName() + "에 static from() 메서드가 없습니다.");
+        throw new RuntimeException(dtoClass.getSimpleName() + " does not have a static from() method.");
     }
 }

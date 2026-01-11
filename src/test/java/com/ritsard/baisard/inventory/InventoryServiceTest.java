@@ -8,6 +8,8 @@ import com.ritsard.baisard.domain.inventory.entity.Category;
 import com.ritsard.baisard.domain.inventory.entity.Inventory;
 import com.ritsard.baisard.domain.inventory.entity.Product;
 import com.ritsard.baisard.domain.inventory.enums.InventoryTransactionType;
+import com.ritsard.baisard.domain.inventory.enums.ItemType;
+import com.ritsard.baisard.domain.inventory.enums.VatType;
 import com.ritsard.baisard.domain.inventory.repository.CategoryRepository;
 import com.ritsard.baisard.domain.inventory.repository.InventoryRepository;
 import com.ritsard.baisard.domain.inventory.repository.ProductRepository;
@@ -59,6 +61,7 @@ public class InventoryServiceTest {
     private UUID testUuid;
     private UUID categoryUuid;
     private Category testCategory;
+    private CategoryDto testCategoryDto;
     private Product testProduct;
     private ProductSaveDto productSaveDto;
 
@@ -71,6 +74,12 @@ public class InventoryServiceTest {
                 .uuidCategory(categoryUuid)
                 .categoryName("Electronics")
                 .build();
+
+
+        testCategoryDto = new CategoryDto(
+                categoryUuid,
+                "Electronics"
+        );
 
         testProduct = Product.builder()
                 .uuidProduct(testUuid)
@@ -102,8 +111,21 @@ public class InventoryServiceTest {
         @DisplayName("Should get products with pagination")
         void shouldGetProductsWithPagination() {
             // Arrange
-            List<Product> products = List.of(testProduct);
-            Page<Product> productPage = new PageImpl<>(products);
+            ProductDto productDto = ProductDto.builder()
+                    .uuidProduct(testUuid)
+                    .name("Test Product")
+                    .barcode("123456789")
+                    .baseUnit("pcs")
+                    .quantity(BigDecimal.valueOf(100))
+                    .cost(BigDecimal.valueOf(50.00))
+                    .price(BigDecimal.valueOf(75.00))
+                    .isAvailable(true)
+                    .itemType(ItemType.RESALE)
+                    .vatType(VatType.VATABLE)
+                    .categoryId(categoryUuid)
+                    .build();
+
+            Page<ProductDto> productPage = new PageImpl<>(List.of(productDto));
 
             when(productRepository.findProductsWithConditions(
                     any(), any(), any(), any(Pageable.class)))
@@ -292,8 +314,8 @@ public class InventoryServiceTest {
         void shouldGetAllCategories() {
             // Arrange
             List<Category> categories = List.of(testCategory);
-            when(categoryRepository.findAll(any(Sort.class)))
-                    .thenReturn(categories);
+            when(categoryRepository.findAllDto())
+                    .thenReturn(List.of(testCategoryDto));
 
             // Act
             List<CategoryDto> result = inventoryService.getCategories();
@@ -302,15 +324,15 @@ public class InventoryServiceTest {
             assertNotNull(result);
             assertEquals(1, result.size());
             assertEquals("Electronics", result.get(0).getCategoryName());
-            verify(categoryRepository).findAll(any(Sort.class));
+            verify(categoryRepository).findAllDto();
         }
 
         @Test
         @DisplayName("Should get single category by UUID")
         void shouldGetCategoryByUuid() {
             // Arrange
-            when(categoryRepository.findById(categoryUuid))
-                    .thenReturn(Optional.of(testCategory));
+            when(categoryRepository.findDtoById(categoryUuid))
+                    .thenReturn(Optional.of(testCategoryDto));
 
             // Act
             CategoryDto result = inventoryService.getCategory(categoryUuid);
@@ -318,14 +340,14 @@ public class InventoryServiceTest {
             // Assert
             assertNotNull(result);
             assertEquals("Electronics", result.getCategoryName());
-            verify(categoryRepository).findById(categoryUuid);
+            verify(categoryRepository).findDtoById(categoryUuid);
         }
 
         @Test
         @DisplayName("Should create new category")
         void shouldCreateNewCategory() {
             // Arrange
-            CategoryDto categoryDto = new CategoryDto("Food");
+            CategoryDto categoryDto = new CategoryDto(categoryUuid, "Food");
             when(categoryRepository.existsByCategoryNameIgnoreCase(anyString()))
                     .thenReturn(false);
             when(categoryRepository.save(any(Category.class)))
@@ -343,7 +365,7 @@ public class InventoryServiceTest {
         @DisplayName("Should throw ConflictException when category already exists")
         void shouldThrowConflictExceptionWhenCategoryExists() {
             // Arrange
-            CategoryDto categoryDto = new CategoryDto("Electronics");
+            CategoryDto categoryDto = new CategoryDto(categoryUuid, "Electronics");
             when(categoryRepository.existsByCategoryNameIgnoreCase(anyString()))
                     .thenReturn(true);
 
@@ -357,7 +379,7 @@ public class InventoryServiceTest {
         @DisplayName("Should update category")
         void shouldUpdateCategory() {
             // Arrange
-            CategoryDto categoryDto = new CategoryDto("Updated Category");
+            CategoryDto categoryDto = new CategoryDto(categoryUuid, "Updated Category");
             when(categoryRepository.findById(categoryUuid))
                     .thenReturn(Optional.of(testCategory));
 

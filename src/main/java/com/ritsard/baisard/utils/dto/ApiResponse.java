@@ -1,6 +1,7 @@
 package com.ritsard.baisard.utils.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.ritsard.baisard.utils.enums.ErrorCode;
 import com.ritsard.baisard.utils.enums.SuccessCode;
 import lombok.AllArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Page;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonPropertyOrder({ "success", "status", "resultMsg", "divisionCode", "errorId", "data" }) // Add this line
 public class ApiResponse<T> {
 
     // Indicates if the operation was successful (status < 400)
@@ -113,9 +115,17 @@ public class ApiResponse<T> {
     }
 
     // Aliases for 'ok' methods to support legacy 'success' naming convention
-    public static <T> ApiResponse<T> success(T data) { return ok(data); }
-    public static <T> ApiResponse<T> success() { return ok(); }
-    public static <T> ApiResponse<T> success(T data, String customMessage) { return ok(data, customMessage); }
+    public static <T> ApiResponse<T> success(T data) {
+        return ok(data);
+    }
+
+    public static <T> ApiResponse<T> success() {
+        return ok();
+    }
+
+    public static <T> ApiResponse<T> success(T data, String customMessage) {
+        return ok(data, customMessage);
+    }
 
     /**
      * Success response using a predefined SuccessCode enum.
