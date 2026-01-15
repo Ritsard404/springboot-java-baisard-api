@@ -3,12 +3,16 @@ package com.ritsard.baisard.domain.order.repository;
 import com.ritsard.baisard.domain.member.entity.Member;
 import com.ritsard.baisard.domain.order.entity.Invoice;
 import com.ritsard.baisard.domain.order.entity.SaleType;
+import com.ritsard.baisard.domain.order.entity.enums.InvoiceStatusType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -40,6 +44,17 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
     Long findLastInvoiceNumberByTerminal(
             @Param("terminalId") UUID terminalId,
             @Param("isTrainMode") boolean isTrainMode
+    );
+
+    /**
+     * Find invoices by cashier, status, created after a specific time, and train mode
+     * Used for calculating cash in drawer from paid orders
+     */
+    List<Invoice> findByCashierAndStatusAndCreatedAtAfterAndIsTrainMode(
+            Member cashier,
+            InvoiceStatusType statusType,
+            Instant tsIn,
+            boolean isTrainMode
     );
 
 

@@ -65,7 +65,10 @@ public class LoginServiceImpl implements LoginService {
     }
 
     private LoginCredential findValidMember(LoginRequestDto dto) {
-        LoginCredential credential = (LoginCredential) this.loginCredentialRepository.findByIdentifier(dto.getIdentifier()).orElseThrow(() -> new NoSuchUserException("Your ID or password is incorrect."));
+        LoginCredential credential = (LoginCredential) this.loginCredentialRepository
+                .findByIdentifier(dto.getIdentifier())
+                .orElseThrow(() -> new NoSuchUserException("Your ID or password is incorrect."));
+
         if (credential.isDeleted()) {
             throw new NoSuchUserException("This user has been deleted\n.");
         } else if (!credential.getLoginType().equals(dto.getLoginType())) {
