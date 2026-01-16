@@ -48,12 +48,13 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
                     p.isAvailable,
                     p.itemType,
                     p.vatType,
-                    p.category.uuidCategory
+                    p.category.uuidCategory,
+                    p.category.categoryName
                 )
                 FROM Product p
-                WHERE (:keyword IS NULL 
-                       OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) 
-                       OR LOWER(p.barcode) LIKE LOWER(CONCAT('%', :keyword, '%')))
+                WHERE (CAST(:keyword AS string) IS NULL
+                       OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')) 
+                       OR LOWER(p.barcode) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')))
                   AND (:barcode IS NULL OR p.barcode = :barcode)
                   AND (:uuidCategory IS NULL OR p.category.uuidCategory = :uuidCategory)
                   AND p.isDeleted = false

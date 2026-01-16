@@ -15,10 +15,11 @@ import java.util.UUID;
 @Setter
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor
 @Schema(description = "Product DTO")
 public class ProductDto {
+
     private UUID uuidProduct;
+
     @NotBlank
     private String name;
 
@@ -40,16 +41,45 @@ public class ProductDto {
     @DecimalMin(value = "0.0", inclusive = true)
     private BigDecimal price;
 
-    @Builder.Default
-    private Boolean isAvailable = true;
+    private Boolean isAvailable;
 
-    @Builder.Default
-    private ItemType itemType = ItemType.RESALE;
+    private ItemType itemType;
 
-    @Builder.Default
-    private VatType vatType = VatType.VATABLE;
+    private VatType vatType;
 
     @NotNull
     private UUID categoryId;
+    @NotBlank
+    private String categoryName;
 
+    // Explicit constructor for JPQL mapping
+    public ProductDto(
+            UUID uuidProduct,
+            String name,
+            String productImageUrl,
+            String barcode,
+            String baseUnit,
+            BigDecimal quantity,
+            BigDecimal cost,
+            BigDecimal price,
+            Boolean isAvailable,
+            ItemType itemType,
+            VatType vatType,
+            UUID categoryId,
+            String categoryName
+    ) {
+        this.uuidProduct = uuidProduct;
+        this.name = name;
+        this.productImageUrl = productImageUrl;
+        this.barcode = barcode;
+        this.baseUnit = baseUnit;
+        this.quantity = quantity;
+        this.cost = cost;
+        this.price = price;
+        this.isAvailable = isAvailable;
+        this.itemType = itemType;
+        this.vatType = vatType;
+        this.categoryId = categoryId;
+        this.categoryName = categoryName;
+    }
 }

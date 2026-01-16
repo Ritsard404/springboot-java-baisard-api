@@ -24,7 +24,7 @@ import java.util.UUID;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-@SQLDelete(sql = "UPDATE category SET is_deleted = true, deleted_at = now() WHERE uuid_product = ?")
+@SQLDelete(sql = "UPDATE product SET is_deleted = true, deleted_at = now() WHERE uuid_product = ?")
 @SQLRestriction("is_deleted = false")
 @Table(
         name = "product",
@@ -52,8 +52,8 @@ public class Product extends BaseEntity implements FileLoadable<ImageFileInfo> {
     private String productImageUrl;
 
     @Column(name = "barcode", length = 100)
-    @Builder.Default
-    private String barcode = "";
+//    @Builder.Default
+    private String barcode;
 
     @Column(name = "base_unit", nullable = false, length = 50)
     @Builder.Default

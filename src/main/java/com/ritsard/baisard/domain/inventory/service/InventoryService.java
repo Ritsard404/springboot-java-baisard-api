@@ -109,6 +109,17 @@ public class InventoryService implements IInventoryService {
 
     @Override
     public void newProduct(ProductSaveDto productSaveDto) {
+
+        // Find or create category
+        Category category = categoryRepository
+                .findById(productSaveDto.getUuidCategory())
+                .orElseGet(() -> {
+                    Category newCategory = new Category();
+                    newCategory.setUuidCategory(productSaveDto.getUuidCategory());
+                    newCategory.setCategoryName(productSaveDto.getCategoryName().toUpperCase());
+                    return categoryRepository.save(newCategory);
+                });
+
         if (productRepository.existsByNameIgnoreCaseAndCategory_UuidCategory(
                 productSaveDto.getName(),
                 productSaveDto.getUuidCategory()
@@ -116,8 +127,6 @@ public class InventoryService implements IInventoryService {
             throw new ConflictException("Product name already exists in this category");
         }
 
-        Category category = categoryRepository.findById(productSaveDto.getUuidCategory())
-                .orElseThrow(() -> new NotFoundException("Category not found"));
 
         Product product = ProductMapper.toEntity(productSaveDto, category);
 
@@ -145,19 +154,33 @@ public class InventoryService implements IInventoryService {
 
     @Override
     public void editProduct(UUID uuidProduct, ProductSaveDto productSaveDto) {
+
+        Product existProduct = productRepository.findById(uuidProduct)
+                .orElseThrow(() -> new NotFoundException("Product not found"));
+
+        // Find or create category
+        Category category = categoryRepository
+                .findById(productSaveDto.getUuidCategory())
+                .orElseGet(() -> {
+                    Category newCategory = new Category();
+                    newCategory.setUuidCategory(productSaveDto.getUuidCategory());
+                    newCategory.setCategoryName(productSaveDto.getCategoryName().toUpperCase());
+                    return categoryRepository.save(newCategory);
+                });
+
+        // Optional: keep category name in sync
+        if (!category.getCategoryName().equals(productSaveDto.getCategoryName())) {
+            category.setCategoryName(productSaveDto.getCategoryName());
+        }
+
+        // Prevent duplicate product name
         if (productRepository.existsByNameIgnoreCaseAndCategory_UuidCategoryAndUuidProductNot(
                 productSaveDto.getName(),
-                productSaveDto.getUuidCategory(),
+                category.getUuidCategory(),
                 uuidProduct
         )) {
             throw new ConflictException("Product name already exists in this category");
         }
-        // Fetch category from DB first
-        Category category = categoryRepository.findById(productSaveDto.getUuidCategory())
-                .orElseThrow(() -> new NotFoundException("Category not found"));
-
-        Product existProduct = productRepository.findById(uuidProduct).
-                orElseThrow(() -> new NotFoundException("Product not found."));
 
         ProductMapper.updateEntity(existProduct, productSaveDto, category);
 

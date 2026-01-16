@@ -524,7 +524,8 @@ public class GlobalExceptionHandler {
             if (element.getClassName().startsWith(APP_PACKAGE)) return element;
         }
         for (StackTraceElement element : stackTrace) {
-            if (element.getClassName().contains("Controller") || element.getClassName().contains("Service")) return element;
+            if (element.getClassName().contains("Controller") || element.getClassName().contains("Service"))
+                return element;
         }
         return stackTrace[0];
     }
@@ -742,6 +743,54 @@ public class GlobalExceptionHandler {
     protected ResponseEntity<?> handleAllExceptions(Exception ex) {
         return this.buildErrorResponse(ex, ErrorCode.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR,
                 "An internal server error occurred. Please contact the administrator.");
+    }
+
+    @ExceptionHandler(value = {org.springframework.security.authorization.AuthorizationDeniedException.class})
+    public ResponseEntity<?> handleAuthorizationDeniedException(
+            org.springframework.security.authorization.AuthorizationDeniedException ex,
+            HttpServletRequest request) {
+
+        String errorId = this.generateErrorId();
+        MDC.put("errorId", errorId);
+
+        log.warn("\n==================== AUTHORIZATION DENIED ====================\n" +
+                        "🆔 Error ID: {}\n" +
+                        "📍 Request Info:\n   - URL: {} {}\n   - Client IP: {}\n" +
+                        "🔴 Message: {}",
+                errorId, request.getMethod(), request.getRequestURI(),
+                request.getRemoteAddr(), ex.getMessage());
+
+        ApiResponse response = ApiResponse.error(
+                ErrorCode.FORBIDDEN_ERROR,
+                "You do not have permission to access this resource"
+        );
+        response.setErrorId(errorId);
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    @ExceptionHandler(value = {AccessDeniedException.class})
+    public ResponseEntity<?> handleAccessDeniedException(
+            AccessDeniedException ex,
+            HttpServletRequest request) {
+
+        String errorId = this.generateErrorId();
+        MDC.put("errorId", errorId);
+
+        log.warn("\n==================== ACCESS DENIED ====================\n" +
+                        "🆔 Error ID: {}\n" +
+                        "📍 Request Info:\n   - URL: {} {}\n   - Client IP: {}\n" +
+                        "🔴 Message: {}",
+                errorId, request.getMethod(), request.getRequestURI(),
+                request.getRemoteAddr(), ex.getMessage());
+
+        ApiResponse response = ApiResponse.error(
+                ErrorCode.FORBIDDEN_ERROR,
+                "You do not have permission to access this resource"
+        );
+        response.setErrorId(errorId);
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
     private boolean isDevelopmentEnvironment() {

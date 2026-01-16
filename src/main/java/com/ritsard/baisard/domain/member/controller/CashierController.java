@@ -18,13 +18,13 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/cashier")
 @RequiredArgsConstructor
-@Tag(name = "Cashier", description = "Cashier drawer management APIs")
+@Tag(name = "Cashier (CASHIER & ADMIN)", description = "Cashier drawer management APIs")
 public class CashierController {
 
     private final CashierService cashierService;
 
     @PostMapping("/cash-in-drawer")
-    @PreAuthorize("hasAnyAuthority('CASHIER', 'ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyAuthority('CASHIER', 'ADMIN')")
     @Operation(
             summary = "Set cash in drawer",
             description = "Sets the initial cash amount in the cashier's drawer at the start of their shift"
@@ -40,7 +40,7 @@ public class CashierController {
     }
 
     @GetMapping("/is-cashed-drawer")
-    @PreAuthorize("hasAnyAuthority('CASHIER', 'ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyAuthority('CASHIER', 'ADMIN')")
     @Operation(
             summary = "Check if drawer has cash",
             description = "Checks if the cashier's drawer currently has cash set"
@@ -56,7 +56,7 @@ public class CashierController {
     }
 
     @PostMapping("/cash-out-drawer")
-    @PreAuthorize("hasAnyAuthority('CASHIER', 'ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyAuthority('CASHIER', 'ADMIN')")
     @Operation(
             summary = "Cash out drawer",
             description = "Records the cash out amount at the end of cashier's shift, requires manager approval"
@@ -79,7 +79,7 @@ public class CashierController {
     }
 
     @PostMapping("/cash-withdraw-drawer")
-    @PreAuthorize("hasAnyAuthority('CASHIER', 'ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyAuthority('CASHIER', 'ADMIN')")
     @Operation(
             summary = "Withdraw cash from drawer",
             description = "Withdraws cash from the drawer during shift, requires manager approval"

@@ -54,4 +54,7 @@ public class ProductSaveDto {
     @NotNull
     private UUID uuidCategory;
 
+    @NotBlank
+    private String categoryName;
+
 }
