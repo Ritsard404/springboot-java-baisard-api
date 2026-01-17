@@ -6,7 +6,7 @@ services:
     image: baisard-api:latest
     container_name: baisard-api
     ports:
-      - "8080:8080"
+      - "1234:1234"
     depends_on:
       postgres:
         condition: service_healthy
@@ -16,8 +16,22 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/app_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: 200303
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      AES_SECRET_KEY: wotkdvu@fcz1246GsJwlddutn_dlswndtlrtkgud
+
+  frontend:
+    build:
+      context: ../baisard-ui   # This path relative to docker-compose.yml
+      dockerfile: Dockerfile
+    image: baisard-ui:latest
+    container_name: baisard-ui
+    ports:
+      - "3000:3000"
+    depends_on:
+      - baisard-api
+    environment:
+      NEXT_PUBLIC_API_URL: http://baisard-api:1234
 
   postgres:
     image: postgres:16-alpine

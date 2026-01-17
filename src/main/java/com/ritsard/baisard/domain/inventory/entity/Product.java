@@ -3,6 +3,7 @@ package com.ritsard.baisard.domain.inventory.entity;
 import com.ritsard.baisard.base.entity.BaseEntity;
 import com.ritsard.baisard.domain.inventory.enums.ItemType;
 import com.ritsard.baisard.domain.inventory.enums.VatType;
+import com.ritsard.baisard.domain.member.entity.Company;
 import com.ritsard.baisard.file.entity.v2.ImageFileInfo;
 import com.ritsard.baisard.file.service.v4.FileLoadable;
 import com.ritsard.baisard.utils.helper.UUIDManager;
@@ -86,6 +87,10 @@ public class Product extends BaseEntity implements FileLoadable<ImageFileInfo> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uuid_category", nullable = false)
     private Category category;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uuid_company")
+    private Company company;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "uuid_product"))

@@ -11,9 +11,11 @@ import com.ritsard.baisard.domain.inventory.mapper.ProductMapper;
 import com.ritsard.baisard.domain.inventory.repository.CategoryRepository;
 import com.ritsard.baisard.domain.inventory.repository.InventoryRepository;
 import com.ritsard.baisard.domain.inventory.repository.ProductRepository;
+import com.ritsard.baisard.domain.member.entity.Member;
 import com.ritsard.baisard.global.exception.ConflictException;
 import com.ritsard.baisard.global.utils.Formats;
 import com.ritsard.baisard.global.utils.ImageUtils;
+import com.ritsard.baisard.jwt.utils.AuthManager;
 import com.ritsard.baisard.utils.exceptions.NotFoundException;
 import com.ritsard.baisard.utils.exceptions.files.InvalidFileTypeException;
 import com.ritsard.baisard.utils.helper.PageHelper;
@@ -31,7 +33,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 @Slf4j
@@ -43,9 +44,16 @@ public class InventoryService implements IInventoryService {
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
     private final ImageUtils imageUtils;
+    private final AuthManager<Member> authManager;
 
     @Override
     public Object getProducts(String keyword, String barcode, UUID uuidCategory, Integer page, Integer size, String sortBy, String direction) {
+        Member member = authManager.getMember();
+        // Safely get the Company UUID. If member or company is null, companyUuid becomes null.
+        UUID companyUuid = (member != null && member.getCompany() != null)
+                ? member.getCompany().getUuidCompany()
+                : null;
+
         // Default paging & sorting
         int pageNumber = (page != null && page >= 0) ? page : 0;
         int pageSize = (size != null && size > 0) ? size : 10;
@@ -63,6 +71,7 @@ public class InventoryService implements IInventoryService {
                         keywordFilter,
                         barcode,
                         uuidCategory,
+                        companyUuid,
                         pageable
                 );
 
@@ -109,6 +118,7 @@ public class InventoryService implements IInventoryService {
 
     @Override
     public void newProduct(ProductSaveDto productSaveDto) {
+        Member member = authManager.getMember();
 
         // Find or create category
         Category category = categoryRepository
@@ -128,7 +138,7 @@ public class InventoryService implements IInventoryService {
         }
 
 
-        Product product = ProductMapper.toEntity(productSaveDto, category);
+        Product product = ProductMapper.toEntity(productSaveDto, category, member.getCompany());
 
         List<String> fileIds = new ArrayList<>();
         if (productSaveDto.getEncryptedProductImageId() != null) {

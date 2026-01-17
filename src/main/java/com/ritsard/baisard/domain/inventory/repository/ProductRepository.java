@@ -57,12 +57,14 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
                        OR LOWER(p.barcode) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')))
                   AND (:barcode IS NULL OR p.barcode = :barcode)
                   AND (:uuidCategory IS NULL OR p.category.uuidCategory = :uuidCategory)
-                  AND p.isDeleted = false
+                  AND (:uuidCompany IS NULL OR p.company.uuidCompany = :uuidCompany OR p.company IS NULL) 
+                  AND p.isDeleted = false 
             """)
     Page<ProductDto> findProductsWithConditions(
             @Param("keyword") String keyword,
             @Param("barcode") String barcode,
             @Param("uuidCategory") UUID uuidCategory,
+            @Param("uuidCompany") UUID uuidCompany,
             Pageable pageable
     );
 

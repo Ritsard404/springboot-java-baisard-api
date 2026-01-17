@@ -3,6 +3,7 @@ package com.ritsard.baisard.domain.inventory.mapper;
 import com.ritsard.baisard.domain.inventory.dto.request.ProductSaveDto;
 import com.ritsard.baisard.domain.inventory.entity.Category;
 import com.ritsard.baisard.domain.inventory.entity.Product;
+import com.ritsard.baisard.domain.member.entity.Company;
 import com.ritsard.baisard.global.utils.Formats;
 import com.ritsard.baisard.global.utils.ImageUtils;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class ProductMapper {
      * Map DTO to new Product entity for creation.
      * Assumes category is already fetched from DB.
      */
-    public static Product toEntity(ProductSaveDto dto, Category category) {
+    public static Product toEntity(ProductSaveDto dto, Category category, Company company) {
         if (dto == null || category == null) return null;
 
         return Product.builder()
@@ -33,6 +34,7 @@ public class ProductMapper {
                 .itemType(dto.getItemType())
                 .vatType(dto.getVatType())
                 .category(category)
+                .company(company)
                 .build();
     }
 

@@ -14,8 +14,11 @@ import com.ritsard.baisard.domain.inventory.repository.CategoryRepository;
 import com.ritsard.baisard.domain.inventory.repository.InventoryRepository;
 import com.ritsard.baisard.domain.inventory.repository.ProductRepository;
 import com.ritsard.baisard.domain.inventory.service.InventoryService;
+import com.ritsard.baisard.domain.member.entity.Company;
+import com.ritsard.baisard.domain.member.entity.Member;
 import com.ritsard.baisard.global.exception.ConflictException;
 import com.ritsard.baisard.global.utils.ImageUtils;
+import com.ritsard.baisard.jwt.utils.AuthManager;
 import com.ritsard.baisard.utils.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -51,6 +54,8 @@ public class InventoryServiceTest {
 
     @Mock
     private InventoryRepository inventoryRepository;
+    @Mock
+    private AuthManager<Member> authManager;
 
     @Mock
     private ImageUtils imageUtils;
@@ -60,15 +65,29 @@ public class InventoryServiceTest {
 
     private UUID testUuid;
     private UUID categoryUuid;
+    private UUID companyUuid;
     private Category testCategory;
     private CategoryDto testCategoryDto;
     private Product testProduct;
+    private Company testCompany;
     private ProductSaveDto productSaveDto;
+    private Member testMember;
 
     @BeforeEach
     void setUp() {
         testUuid = UUID.randomUUID();
         categoryUuid = UUID.randomUUID();
+        companyUuid = UUID.randomUUID();
+
+        testCompany = Company.builder()
+                .uuidCompany(companyUuid)
+                .name("Test Corp")
+                .build();
+
+        testMember = Member.builder()
+                .uuidMember(UUID.randomUUID())
+                .company(testCompany) // The service needs this to not be null
+                .build();
 
         testCategory = Category.builder()
                 .uuidCategory(categoryUuid)
@@ -85,6 +104,7 @@ public class InventoryServiceTest {
                 .uuidProduct(testUuid)
                 .name("Test Product")
                 .barcode("123456789")
+                .company(testCompany)
                 .baseUnit("pcs")
                 .quantity(BigDecimal.valueOf(100))
                 .cost(BigDecimal.valueOf(50.00))
@@ -125,10 +145,12 @@ public class InventoryServiceTest {
                     .categoryId(categoryUuid)
                     .build();
 
+            when(authManager.getMember()).thenReturn(testMember);
+
             Page<ProductDto> productPage = new PageImpl<>(List.of(productDto));
 
             when(productRepository.findProductsWithConditions(
-                    any(), any(), any(), any(Pageable.class)))
+                    any(), any(), any(), any(UUID.class), any(Pageable.class)))
                     .thenReturn(productPage);
 
             // Act
@@ -137,8 +159,9 @@ public class InventoryServiceTest {
 
             // Assert
             assertNotNull(result);
+            verify(authManager).getMember();
             verify(productRepository).findProductsWithConditions(
-                    eq("test"), isNull(), isNull(), any(Pageable.class));
+                    eq("test"), isNull(), isNull(), eq(companyUuid), any(Pageable.class));
         }
 
         @Test
@@ -176,6 +199,7 @@ public class InventoryServiceTest {
         @DisplayName("Should create new product successfully")
         void shouldCreateNewProduct() {
             // Arrange
+            when(authManager.getMember()).thenReturn(testMember);
             when(productRepository.existsByNameIgnoreCaseAndCategory_UuidCategory(
                     anyString(), any(UUID.class))).thenReturn(false);
             when(categoryRepository.findById(categoryUuid))
@@ -187,6 +211,7 @@ public class InventoryServiceTest {
             inventoryService.newProduct(productSaveDto);
 
             // Assert
+            verify(authManager).getMember();
             verify(productRepository).existsByNameIgnoreCaseAndCategory_UuidCategory(
                     productSaveDto.getName(), categoryUuid);
             verify(categoryRepository).findById(categoryUuid);

@@ -39,7 +39,7 @@ public class SecurityConfig implements WebMvcConfigurer {
 
         return List.of(
                 "/swagger-ui/**",
-                "/**",
+//                "/**",
                 "/v3/**",
                 "/api/documents/**",
                 "/api-docs/**",
