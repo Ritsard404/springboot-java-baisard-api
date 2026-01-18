@@ -51,7 +51,6 @@ public class ProductSaveDto {
     @Builder.Default
     private VatType vatType = VatType.VATABLE;
 
-    @NotNull
     private UUID uuidCategory;
 
     @NotBlank

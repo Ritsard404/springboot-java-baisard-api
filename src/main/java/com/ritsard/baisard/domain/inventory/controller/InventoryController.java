@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -100,6 +101,26 @@ public class InventoryController implements FileCrudable<Product, ImageFileInfo>
     public ApiResponse<List<CategoryDto>> getCategories() {
         List<CategoryDto> categories = inventoryService.getCategories();
         return ApiResponse.ok(categories);
+    }
+
+
+    @GetMapping("/categories/{categoryId}/products")
+    @Operation(summary = "Get products by category", description = "Retrieve a slice of products belonging to a specific category")
+    public ApiResponse<?> getProductsByCategory(
+            @PathVariable UUID categoryId,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction
+    ) {
+        Slice<ProductDto> products = inventoryService.getProductsByCategory(
+                categoryId,
+                page,
+                size,
+                sortBy,
+                direction
+        );
+        return ApiResponse.ok(products);
     }
 
     @GetMapping("/categories/{categoryId}")

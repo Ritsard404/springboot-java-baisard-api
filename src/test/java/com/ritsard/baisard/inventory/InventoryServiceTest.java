@@ -28,10 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -338,8 +335,9 @@ public class InventoryServiceTest {
         @DisplayName("Should get all categories")
         void shouldGetAllCategories() {
             // Arrange
+            when(authManager.getMember()).thenReturn(testMember);
             List<Category> categories = List.of(testCategory);
-            when(categoryRepository.findAllDto())
+            when(categoryRepository.findAllDto(any(UUID.class)))
                     .thenReturn(List.of(testCategoryDto));
 
             // Act
@@ -349,7 +347,50 @@ public class InventoryServiceTest {
             assertNotNull(result);
             assertEquals(1, result.size());
             assertEquals("Electronics", result.get(0).getCategoryName());
-            verify(categoryRepository).findAllDto();
+            verify(categoryRepository).findAllDto(companyUuid);
+        }
+
+        @Test
+        @DisplayName("Should get products by category (Slice)")
+        void shouldGetProductsByCategory() {
+            // Arrange
+            // 1. Setup the Auth mock (already handled in BeforeEach, but we need the when)
+            when(authManager.getMember()).thenReturn(testMember);
+
+            // 2. Prepare the mock response data
+            ProductDto productDto = ProductDto.builder()
+                    .uuidProduct(testUuid)
+                    .name("Test Product")
+                    .categoryId(categoryUuid)
+                    .build();
+
+            // We use SliceImpl because Slice is an interface
+            Slice<ProductDto> productSlice = new SliceImpl<>(List.of(productDto));
+
+            // 3. Mock the repository call
+            // Note: ensure the arguments match exactly what the service passes
+            when(productRepository.findProductsByCategoryForPOS(
+                    eq(categoryUuid),
+                    eq(companyUuid),
+                    any(Pageable.class)))
+                    .thenReturn(productSlice);
+
+            // Act
+            Slice<ProductDto> result = inventoryService.getProductsByCategory(
+                    categoryUuid, 0, 10, "name", "asc");
+
+            // Assert
+            assertNotNull(result);
+            assertFalse(result.isEmpty());
+            assertEquals(1, result.getContent().size());
+            assertEquals("Test Product", result.getContent().get(0).getName());
+
+            // Verify interactions
+            verify(authManager).getMember();
+            verify(productRepository).findProductsByCategoryForPOS(
+                    eq(categoryUuid),
+                    eq(companyUuid),
+                    any(Pageable.class));
         }
 
         @Test

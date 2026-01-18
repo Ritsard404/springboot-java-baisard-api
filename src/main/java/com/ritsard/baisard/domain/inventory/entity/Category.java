@@ -1,6 +1,7 @@
 package com.ritsard.baisard.domain.inventory.entity;
 
 import com.ritsard.baisard.base.entity.BaseEntity;
+import com.ritsard.baisard.domain.member.entity.Company;
 import com.ritsard.baisard.utils.helper.UUIDManager;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,16 +21,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @SQLDelete(sql = "UPDATE category SET is_deleted = true, deleted_at = now() WHERE uuid_category = ?")
 @SQLRestriction("is_deleted = false")
-@Table(
-        name = "category",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_category_name",
-                        columnNames = "category_name"
-                )
-        }
-)
-
 public class Category extends BaseEntity {
     @Id
     @Column(name = "uuid_category", nullable = false)
@@ -38,6 +29,10 @@ public class Category extends BaseEntity {
 
     @Column(name = "category_name")
     private String categoryName;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uuid_company")
+    private Company company;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default

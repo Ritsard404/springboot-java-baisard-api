@@ -5,6 +5,7 @@ import com.ritsard.baisard.domain.inventory.dto.request.ProductSaveDto;
 import com.ritsard.baisard.domain.inventory.dto.response.CategoryDto;
 import com.ritsard.baisard.domain.inventory.dto.response.ProductDto;
 import com.ritsard.baisard.domain.inventory.entity.Category;
+import org.springframework.data.domain.Slice;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -16,6 +17,8 @@ public interface IInventoryService {
                        Integer page, Integer size, String sortBy, String direction);
 
     ProductDto getProduct(UUID uuidProduct);
+
+    Slice<ProductDto> getProductsByCategory(UUID uuidCategory, Integer page, Integer size, String sortBy, String direction);
 
     void stockProduct(UUID uuidProduct, BigDecimal qty);
 

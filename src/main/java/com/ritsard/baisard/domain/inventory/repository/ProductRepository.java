@@ -4,6 +4,7 @@ import com.ritsard.baisard.domain.inventory.dto.response.ProductDto;
 import com.ritsard.baisard.domain.inventory.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -11,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -65,6 +67,35 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
             @Param("barcode") String barcode,
             @Param("uuidCategory") UUID uuidCategory,
             @Param("uuidCompany") UUID uuidCompany,
+            Pageable pageable
+    );
+
+    @Query("""
+                SELECT new com.ritsard.baisard.domain.inventory.dto.response.ProductDto(
+                    p.uuidProduct,
+                    p.name,
+                    p.productImageUrl,
+                    p.barcode,
+                    p.baseUnit,
+                    p.quantity,
+                    p.cost,
+                    p.price,
+                    p.isAvailable,
+                    p.itemType,
+                    p.vatType,
+                    p.category.uuidCategory,
+                    p.category.categoryName
+                )
+                FROM Product p
+                WHERE p.category.uuidCategory = :uuidCategory
+                  AND (p.company.uuidCompany = :uuidCompany OR p.company IS NULL)
+                  AND p.isAvailable = true
+                  AND p.isDeleted = false
+                ORDER BY p.name ASC
+            """)
+    Slice<ProductDto> findProductsByCategoryForPOS(
+            UUID uuidCategory,
+            UUID uuidCompany,
             Pageable pageable
     );
 
