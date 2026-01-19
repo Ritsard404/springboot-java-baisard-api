@@ -24,7 +24,7 @@ public class Company extends BaseEntity {
     @Builder.Default
     private UUID uuidCompany = UUIDManager.generateUUIDv7();
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
     @Column(name = "code")
     private String code;
@@ -32,6 +32,10 @@ public class Company extends BaseEntity {
     private String email;
     @Column(name = "phone")
     private String phone;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean approved = false;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "company")
     @Builder.Default

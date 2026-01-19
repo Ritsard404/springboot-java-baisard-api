@@ -1,6 +1,7 @@
 package com.ritsard.baisard.domain.member.entity;
 
 
+import com.ritsard.baisard.domain.member.enums.MemberApprovalStatus;
 import com.ritsard.baisard.domain.member.enums.PermissionType;
 import com.ritsard.baisard.file.entity.v2.ImageFileInfo;
 import com.ritsard.baisard.file.service.v4.FileLoadable;
@@ -56,6 +57,19 @@ public class Member extends BaseMember implements FileLoadable<ImageFileInfo> {
 
     @Column(name = "member_deleted_at")
     private Instant memberDeletedAt;
+
+    // --- Approval ---
+    @Enumerated(EnumType.STRING)
+//    @Column(name = "approval_status", nullable = false)
+    @Column(name = "approval_status")
+    @Builder.Default
+    private MemberApprovalStatus approvalStatus = MemberApprovalStatus.PENDING;
+
+    @Column(name = "approved_at")
+    private Instant approvedAt;
+
+    @Column(name = "approved_by")
+    private UUID approvedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uuid_company")
@@ -119,5 +133,16 @@ public class Member extends BaseMember implements FileLoadable<ImageFileInfo> {
 
     public boolean isMemberActive() {
         return !this.memberIsDeleted;
+    }
+
+    // --- Guards ---
+    public boolean isApproved() {
+        return approvalStatus == MemberApprovalStatus.APPROVED;
+    }
+
+    public void approve(UUID superAdminId) {
+        this.approvalStatus = MemberApprovalStatus.APPROVED;
+        this.approvedAt = Instant.now();
+        this.approvedBy = superAdminId;
     }
 }
