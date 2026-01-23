@@ -450,107 +450,107 @@ class CashierServiceTest {
                 .status(InvoiceStatusType.PAID)
                 .build();
     }
-
-    @Test
-    @DisplayName("myCashiers - Should return paged DTOs successfully")
-    void myCashiers_shouldReturnPagedData() {
-        // Given
-        String keyword = "test";
-        UUID companyId = UUID.randomUUID();
-
-        // Mock Admin with Company
-        com.ritsard.baisard.domain.member.entity.Company mockCompany = mock(com.ritsard.baisard.domain.member.entity.Company.class);
-        when(mockCompany.getUuidCompany()).thenReturn(companyId);
-        cashier.setCompany(mockCompany);
-
-        when(authManager.getMember()).thenReturn(cashier);
-
-        // Mock Projection and Page
-        MyCashiersProjection projection = mock(MyCashiersProjection.class);
-        Page<MyCashiersProjection> projectionPage = new PageImpl<>(List.of(projection));
-
-        when(memberRepository.findMyCashiersWithProjection(eq(keyword), eq(companyId), any(Pageable.class)))
-                .thenReturn(projectionPage);
-
-        // When
-        Page<MyCashiersDto> result = cashierService.myCashiers(keyword, 0, 10, "createdAt", "asc");
-
-        // Then
-        assertNotNull(result);
-        assertEquals(1, result.getContent().size());
-        verify(memberRepository).findMyCashiersWithProjection(eq(keyword), eq(companyId), any(Pageable.class));
-    }
-
-    @Test
-    @DisplayName("myCashiers - Should throw exception if admin has no company")
-    void myCashiers_shouldThrowExceptionWhenNoCompany() {
-        // Given
-        when(authManager.getMember()).thenReturn(cashier);
-        cashier.setCompany(null); // No company associated
-
-        // When & Then
-        assertThrows(ConflictException.class, () ->
-                cashierService.myCashiers("key", 0, 10, null, null));
-    }
-
-    @Test
-    @DisplayName("updateCashierInfo - Should update successfully")
-    void updateCashierInfo_shouldUpdateSuccessfully() {
-        // Given
-        UUID cashierId = UUID.randomUUID();
-
-        // Using Builder to avoid constructor visibility issues
-        CashierInfoDto dto = CashierInfoDto.builder()
-                .cashierId(cashierId)
-                .name("Updated Name")
-                .isActive(true)
-                .identifier("new@email.com")
-                .build();
-
-        // Ensure cashier has a credential to update
-        cashier.getLoginCredentials().add(LoginCredential.builder()
-                .identifier("old@email.com")
-                .member(cashier)
-                .build());
-
-        when(memberRepository.findById(cashierId)).thenReturn(Optional.of(cashier));
-
-        // When
-        cashierService.updateCashierInfo(dto);
-
-        // Then
-        verify(memberRepository, times(1)).findById(cashierId);
-        assertEquals("Updated Name", cashier.getName());
-        assertEquals("new@email.com", cashier.getIdentifier());
-    }
-
-    @Test
-    @DisplayName("cashierInfo - Should return DTO when cashier exists")
-    void cashierInfo_shouldReturnDtoWhenCashierExists() {
-        // Given
-        UUID cashierId = UUID.randomUUID();
-        cashier.getLoginCredentials().add(LoginCredential.builder()
-                .identifier("cashier@test.com")
-                .member(cashier)
-                .build());
-        when(memberRepository.findById(cashierId)).thenReturn(Optional.of(cashier));
-
-        // When
-        CashierInfoDto result = cashierService.cashierInfo(cashierId);
-
-        // Then
-        assertNotNull(result);
-        verify(memberRepository, times(1)).findById(cashierId);
-    }
-
-    @Test
-    @DisplayName("cashierInfo - Should throw NoSuchUserException when cashier not found")
-    void cashierInfo_shouldThrowExceptionWhenNotFound() {
-        // Given
-        UUID cashierId = UUID.randomUUID();
-        when(memberRepository.findById(cashierId)).thenReturn(Optional.empty());
-
-        // When & Then
-        assertThrows(NoSuchUserException.class, () -> cashierService.cashierInfo(cashierId));
-    }
+//
+//    @Test
+//    @DisplayName("myCashiers - Should return paged DTOs successfully")
+//    void myCashiers_shouldReturnPagedData() {
+//        // Given
+//        String keyword = "test";
+//        UUID companyId = UUID.randomUUID();
+//
+//        // Mock Admin with Company
+//        com.ritsard.baisard.domain.member.entity.Company mockCompany = mock(com.ritsard.baisard.domain.member.entity.Company.class);
+//        when(mockCompany.getUuidCompany()).thenReturn(companyId);
+//        cashier.setCompany(mockCompany);
+//
+//        when(authManager.getMember()).thenReturn(cashier);
+//
+//        // Mock Projection and Page
+//        MyCashiersProjection projection = mock(MyCashiersProjection.class);
+//        Page<MyCashiersProjection> projectionPage = new PageImpl<>(List.of(projection));
+//
+//        when(memberRepository.findMyCashiersWithProjection(eq(keyword), eq(companyId), any(Pageable.class)))
+//                .thenReturn(projectionPage);
+//
+//        // When
+//        Page<MyCashiersDto> result = cashierService.myCashiers(keyword, 0, 10, "createdAt", "asc");
+//
+//        // Then
+//        assertNotNull(result);
+//        assertEquals(1, result.getContent().size());
+//        verify(memberRepository).findMyCashiersWithProjection(eq(keyword), eq(companyId), any(Pageable.class));
+//    }
+//
+//    @Test
+//    @DisplayName("myCashiers - Should throw exception if admin has no company")
+//    void myCashiers_shouldThrowExceptionWhenNoCompany() {
+//        // Given
+//        when(authManager.getMember()).thenReturn(cashier);
+//        cashier.setCompany(null); // No company associated
+//
+//        // When & Then
+//        assertThrows(ConflictException.class, () ->
+//                cashierService.myCashiers("key", 0, 10, null, null));
+//    }
+//
+//    @Test
+//    @DisplayName("updateCashierInfo - Should update successfully")
+//    void updateCashierInfo_shouldUpdateSuccessfully() {
+//        // Given
+//        UUID cashierId = UUID.randomUUID();
+//
+//        // Using Builder to avoid constructor visibility issues
+//        CashierInfoDto dto = CashierInfoDto.builder()
+//                .cashierId(cashierId)
+//                .name("Updated Name")
+//                .isActive(true)
+//                .identifier("new@email.com")
+//                .build();
+//
+//        // Ensure cashier has a credential to update
+//        cashier.getLoginCredentials().add(LoginCredential.builder()
+//                .identifier("old@email.com")
+//                .member(cashier)
+//                .build());
+//
+//        when(memberRepository.findById(cashierId)).thenReturn(Optional.of(cashier));
+//
+//        // When
+//        cashierService.updateCashierInfo(dto);
+//
+//        // Then
+//        verify(memberRepository, times(1)).findById(cashierId);
+//        assertEquals("Updated Name", cashier.getName());
+//        assertEquals("new@email.com", cashier.getIdentifier());
+//    }
+//
+//    @Test
+//    @DisplayName("cashierInfo - Should return DTO when cashier exists")
+//    void cashierInfo_shouldReturnDtoWhenCashierExists() {
+//        // Given
+//        UUID cashierId = UUID.randomUUID();
+//        cashier.getLoginCredentials().add(LoginCredential.builder()
+//                .identifier("cashier@test.com")
+//                .member(cashier)
+//                .build());
+//        when(memberRepository.findById(cashierId)).thenReturn(Optional.of(cashier));
+//
+//        // When
+//        CashierInfoDto result = cashierService.cashierInfo(cashierId);
+//
+//        // Then
+//        assertNotNull(result);
+//        verify(memberRepository, times(1)).findById(cashierId);
+//    }
+//
+//    @Test
+//    @DisplayName("cashierInfo - Should throw NoSuchUserException when cashier not found")
+//    void cashierInfo_shouldThrowExceptionWhenNotFound() {
+//        // Given
+//        UUID cashierId = UUID.randomUUID();
+//        when(memberRepository.findById(cashierId)).thenReturn(Optional.empty());
+//
+//        // When & Then
+//        assertThrows(NoSuchUserException.class, () -> cashierService.cashierInfo(cashierId));
+//    }
 }

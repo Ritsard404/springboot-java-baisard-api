@@ -10,29 +10,29 @@ import com.ritsard.baisard.utils.helper.AESConverter;
 import java.util.stream.Collectors;
 
 public class MemberMapper {
-    //    public static MemberListDto toDto(Member member) {
-//        return MemberListDto.builder()
-//                .memberId(member.getId())
-//                .identifier(member.getIdentifier())
-//                .classification(member.getClassification())
-//                .approvalStatus(member.getApprovalStatus().name())
-//                .company(CompanyDto.builder()
-//                        .uuid(member.getCompany() != null ? member.getCompany().getUuidCompany() : null)
-//                        .code(member.getCompany() != null ? member.getCompany().getCode() : null)
-//                        .name(member.getCompany() != null ? member.getCompany().getName() : null)
-//                        .build())
-//                .permissions(member.getPermissions().stream()
-//                        .map(Permission::getPermissionType)
-//                        .collect(Collectors.toList()))
-//                .build();
-//    }
-    public static MyCashiersDto toMyCashiersDto(MyCashiersProjection p) {
+    public static MemberListDto toMemberListDto(Member member) {
+        return MemberListDto.builder()
+                .memberId(member.getUuidMember())
+                .identifier(member.getIdentifier())
+                .approvalStatus(member.getApprovalStatus().name())
+                .company(CompanyDto.builder()
+                        .uuid(member.getCompany() != null ? member.getCompany().getUuidCompany() : null)
+                        .code(member.getCompany() != null ? member.getCompany().getCode() : null)
+                        .name(member.getCompany() != null ? member.getCompany().getName() : null)
+                        .build())
+                .permissions(member.getPermissions().stream()
+                        .map(Permission::getPermissionType)
+                        .collect(Collectors.toList()))
+                .build();
+    }
+
+    public static MyCashiersDto toMyCashiersDto(Member p) {
         return MyCashiersDto.builder()
-                .cashierId(p.getCashierId())
+                .cashierId(p.getUuidMember())
                 .identifier(p.getIdentifier())
                 .name(p.getName())
                 .nickName(p.getNickname())
-                .isActive(p.getIsActive())
+                .isActive(p.isActive())
                 .build();
     }
 

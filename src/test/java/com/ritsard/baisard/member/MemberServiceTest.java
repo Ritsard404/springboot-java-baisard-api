@@ -202,116 +202,116 @@ public class MemberServiceTest {
         }
     }
 
-    @Nested
-    @DisplayName("adminProfile Tests")
-    class AdminProfileTests {
-
-        @Test
-        @DisplayName("Should return admin profile successfully")
-        void testAdminProfile_success() {
-            // Arrange
-            AdminInfoDto expectedDto = AdminInfoDto.builder()
-                    .name("Admin User")
-                    .email("admin@example.com")
-                    .phoneNumber("1234567890")
-                    .build();
-
-            when(authManager.getMember()).thenReturn(testMember);
-
-            // Mock static method if using MemberMapper (adjust based on your implementation)
-            try (MockedStatic<MemberMapper> mapperMock = mockStatic(MemberMapper.class)) {
-                mapperMock.when(() -> MemberMapper.toAdminDto(testMember))
-                        .thenReturn(expectedDto);
-
-                // Act
-                AdminInfoDto result = memberService.adminProfile();
-
-                // Assert
-                assertNotNull(result);
-                assertEquals(expectedDto.getName(), result.getName());
-                assertEquals(expectedDto.getEmail(), result.getEmail());
-                assertEquals(expectedDto.getPhoneNumber(), result.getPhoneNumber());
-                verify(authManager, times(1)).getMember();
-                mapperMock.verify(() -> MemberMapper.toAdminDto(testMember), times(1));
-            }
-        }
-
-        @Test
-        @DisplayName("Should handle null member from authManager")
-        void testAdminProfile_nullMember() {
-            // Arrange
-            when(authManager.getMember()).thenReturn(null);
-
-            // Act & Assert
-            assertThrows(NullPointerException.class, () ->
-                    memberService.adminProfile()
-            );
-        }
-    }
+//    @Nested
+//    @DisplayName("adminProfile Tests")
+//    class AdminProfileTests {
+//
+//        @Test
+//        @DisplayName("Should return admin profile successfully")
+//        void testAdminProfile_success() {
+//            // Arrange
+//            AdminInfoDto expectedDto = AdminInfoDto.builder()
+//                    .name("Admin User")
+//                    .email("admin@example.com")
+//                    .phoneNumber("1234567890")
+//                    .build();
+//
+//            when(authManager.getMember()).thenReturn(testMember);
+//
+//            // Mock static method if using MemberMapper (adjust based on your implementation)
+//            try (MockedStatic<MemberMapper> mapperMock = mockStatic(MemberMapper.class)) {
+//                mapperMock.when(() -> MemberMapper.toAdminDto(testMember))
+//                        .thenReturn(expectedDto);
+//
+//                // Act
+//                AdminInfoDto result = memberService.adminProfile();
+//
+//                // Assert
+//                assertNotNull(result);
+//                assertEquals(expectedDto.getName(), result.getName());
+//                assertEquals(expectedDto.getEmail(), result.getEmail());
+//                assertEquals(expectedDto.getPhoneNumber(), result.getPhoneNumber());
+//                verify(authManager, times(1)).getMember();
+//                mapperMock.verify(() -> MemberMapper.toAdminDto(testMember), times(1));
+//            }
+//        }
+//
+//        @Test
+//        @DisplayName("Should handle null member from authManager")
+//        void testAdminProfile_nullMember() {
+//            // Arrange
+//            when(authManager.getMember()).thenReturn(null);
+//
+//            // Act & Assert
+//            assertThrows(NullPointerException.class, () ->
+//                    memberService.adminProfile()
+//            );
+//        }
+//    }
 
     @Nested
     @DisplayName("updateAdminProfile Tests")
     class UpdateAdminProfileTests {
 
-        @Test
-        @DisplayName("Should update admin profile successfully")
-        void testUpdateAdminProfile_success() {
-            // Arrange
-            AdminInfoDto dto = AdminInfoDto.builder()
-                    .name("John Doe")
-                    .email("john@example.com")
-                    .phoneNumber("1234567890")
-                    .build();
+//        @Test
+//        @DisplayName("Should update admin profile successfully")
+//        void testUpdateAdminProfile_success() {
+//            // Arrange
+//            AdminInfoDto dto = AdminInfoDto.builder()
+//                    .name("John Doe")
+//                    .email("john@example.com")
+//                    .phoneNumber("1234567890")
+//                    .build();
+//
+//            when(authManager.getBaseMemberUuid()).thenReturn(testMemberId);
+//            when(memberRepository.findById(testMemberId)).thenReturn(Optional.of(testMember));
+//
+//            // Mock static method
+//            try (MockedStatic<MemberMapper> mapperMock = mockStatic(MemberMapper.class)) {
+//                mapperMock.when(() -> MemberMapper.updateAdminFromDto(dto, testMember, aesConverter))
+//                        .then(invocation -> null);
+//
+//                // Act
+//                memberService.updateAdminProfile(dto);
+//
+//                // Assert
+//                verify(authManager, times(1)).getBaseMemberUuid();
+//                verify(memberRepository, times(1)).findById(testMemberId);
+//                mapperMock.verify(() -> MemberMapper.updateAdminFromDto(dto, testMember, aesConverter), times(1));
+//            }
+//        }
 
-            when(authManager.getBaseMemberUuid()).thenReturn(testMemberId);
-            when(memberRepository.findById(testMemberId)).thenReturn(Optional.of(testMember));
+//        @Test
+//        @DisplayName("Should throw NoSuchUserException when admin not found")
+//        void testUpdateAdminProfile_adminNotFound() {
+//            // Arrange
+//            AdminInfoDto dto = AdminInfoDto.builder()
+//                    .name("John")
+//                    .build();
+//            when(authManager.getBaseMemberUuid()).thenReturn(testMemberId);
+//            when(memberRepository.findById(testMemberId)).thenReturn(Optional.empty());
+//
+//            // Act & Assert
+//            NoSuchUserException exception = assertThrows(NoSuchUserException.class, () ->
+//                    memberService.updateAdminProfile(dto)
+//            );
+//
+//            assertEquals("Admin not found", exception.getMessage());
+//            verify(memberRepository, times(1)).findById(testMemberId);
+//        }
 
-            // Mock static method
-            try (MockedStatic<MemberMapper> mapperMock = mockStatic(MemberMapper.class)) {
-                mapperMock.when(() -> MemberMapper.updateAdminFromDto(dto, testMember, aesConverter))
-                        .then(invocation -> null);
-
-                // Act
-                memberService.updateAdminProfile(dto);
-
-                // Assert
-                verify(authManager, times(1)).getBaseMemberUuid();
-                verify(memberRepository, times(1)).findById(testMemberId);
-                mapperMock.verify(() -> MemberMapper.updateAdminFromDto(dto, testMember, aesConverter), times(1));
-            }
-        }
-
-        @Test
-        @DisplayName("Should throw NoSuchUserException when admin not found")
-        void testUpdateAdminProfile_adminNotFound() {
-            // Arrange
-            AdminInfoDto dto = AdminInfoDto.builder()
-                    .name("John")
-                    .build();
-            when(authManager.getBaseMemberUuid()).thenReturn(testMemberId);
-            when(memberRepository.findById(testMemberId)).thenReturn(Optional.empty());
-
-            // Act & Assert
-            NoSuchUserException exception = assertThrows(NoSuchUserException.class, () ->
-                    memberService.updateAdminProfile(dto)
-            );
-
-            assertEquals("Admin not found", exception.getMessage());
-            verify(memberRepository, times(1)).findById(testMemberId);
-        }
-
-        @Test
-        @DisplayName("Should handle null UUID from authManager")
-        void testUpdateAdminProfile_nullUuid() {
-            // Arrange
-            AdminInfoDto dto = AdminInfoDto.builder().name("John").build();
-            when(authManager.getBaseMemberUuid()).thenReturn(null);
-
-            // Act & Assert
-            assertThrows(Exception.class, () ->
-                    memberService.updateAdminProfile(dto)
-            );
-        }
+//        @Test
+//        @DisplayName("Should handle null UUID from authManager")
+//        void testUpdateAdminProfile_nullUuid() {
+//            // Arrange
+//            AdminInfoDto dto = AdminInfoDto.builder().name("John").build();
+//            when(authManager.getBaseMemberUuid()).thenReturn(null);
+//
+//            // Act & Assert
+//            assertThrows(Exception.class, () ->
+//                    memberService.updateAdminProfile(dto)
+//            );
+//        }
     }
 
     @Nested

@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -30,7 +31,7 @@ public class MemberController {
 
     @GetMapping
     @Operation(summary = "Get members")
-    @PreAuthorize("hasAuthority('SUPERADMIN')")
+    @PreAuthorize("hasAnyAuthority('SUPERADMIN')")
     public ApiResponse<Page<MemberListDto>> getMembers(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) MemberApprovalStatus approvalStatus,
@@ -40,6 +41,7 @@ public class MemberController {
             @RequestParam(defaultValue = "identifier") String sortBy,
             @RequestParam(defaultValue = "asc") String direction
     ) {
+
         Page<MemberListDto> members = memberService.getMembers(
                 keyword,
                 approvalStatus,
@@ -51,30 +53,6 @@ public class MemberController {
         );
 
         return ApiResponse.ok(members, "Members fetched successfully");
-    }
-
-    /* =========================================================
-       ADMIN PROFILE
-       ========================================================= */
-
-    @GetMapping("/admin/profile")
-    @Operation(summary = "Get admin profile")
-    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
-    public ApiResponse<AdminInfoDto> adminProfile() {
-        return ApiResponse.ok(
-                memberService.adminProfile(),
-                "Admin profile fetched successfully"
-        );
-    }
-
-    @PutMapping("/admin/profile")
-    @Operation(summary = "Update admin profile")
-    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
-    public ApiResponse<?> updateAdminProfile(
-            @Valid @RequestBody AdminInfoDto dto
-    ) {
-        memberService.updateAdminProfile(dto);
-        return ApiResponse.ok("Admin profile updated successfully");
     }
 
 

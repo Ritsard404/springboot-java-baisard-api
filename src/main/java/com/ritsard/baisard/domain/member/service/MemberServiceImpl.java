@@ -1,16 +1,17 @@
 package com.ritsard.baisard.domain.member.service;
 
+import com.querydsl.core.BooleanBuilder;
 import com.ritsard.baisard.domain.member.dto.response.*;
 import com.ritsard.baisard.domain.member.entity.Member;
+import com.ritsard.baisard.domain.member.entity.QCompany;
+import com.ritsard.baisard.domain.member.entity.QMember;
 import com.ritsard.baisard.domain.member.enums.MemberApprovalStatus;
 import com.ritsard.baisard.domain.member.mapper.MemberMapper;
 import com.ritsard.baisard.domain.member.repository.MemberRepository;
 import com.ritsard.baisard.domain.member.repository.projections.MemberListProjection;
-import com.ritsard.baisard.domain.member.repository.projections.MyCashiersProjection;
+import com.ritsard.baisard.jwt.model.entity.QLoginCredential;
 import com.ritsard.baisard.jwt.utils.AuthManager;
-import com.ritsard.baisard.utils.exceptions.NoSuchUserException;
 import com.ritsard.baisard.utils.exceptions.NotFoundException;
-import com.ritsard.baisard.utils.helper.AESConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
@@ -30,54 +31,46 @@ public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
     private final AuthManager<Member> authManager;
-    private final AESConverter aesConverter;
 
     @Override
     public Page<MemberListDto> getMembers(String keyword, MemberApprovalStatus approvalStatus, UUID companyId, Integer page, Integer size, String sortBy, String direction) {
+        QMember member = QMember.member;
+
+        // 1. Build Predicate (The 'Where' clause)
+        BooleanBuilder where = new BooleanBuilder();
+
+        // Simple property navigation
+        where.and(member.memberIsDeleted.isFalse());
+
+        if (approvalStatus != null) {
+            where.and(member.approvalStatus.eq(approvalStatus));
+        }
+
+        if (companyId != null) {
+            // Navigating to the Company entity via the property name
+            where.and(member.company.uuidCompany.eq(companyId));
+        }
+
+        if (keyword != null && !keyword.isBlank()) {
+            where.and(
+                    member.name.containsIgnoreCase(keyword)
+                            .or(member.loginCredentials.any().identifier.containsIgnoreCase(keyword))
+                            .or(member.company.name.containsIgnoreCase(keyword))
+            );
+        }
+
+        // 2. Sorting and Paging (LINQ Skip/Take equivalent)
         Pageable pageable = PageRequest.of(
                 page != null ? page : 0,
                 size != null ? size : 10,
-                direction != null && direction.equalsIgnoreCase("desc") ?
-                        Sort.by(sortBy).descending() :
-                        Sort.by(sortBy).ascending()
+                "desc".equalsIgnoreCase(direction) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending()
         );
 
-        Page<MemberListProjection> projectionPage =
-                memberRepository.findMembersWithProjection(keyword, approvalStatus, companyId, pageable);
+        // 3. Execution (The 'ToList' equivalent)
+        Page<Member> memberPage = memberRepository.findAll(where, pageable);
 
-        List<MemberListDto> dtoList = projectionPage.stream()
-                .map(p -> MemberListDto.builder()
-                        .memberId(p.getMemberId())
-                        .identifier(p.getIdentifier())
-                        .approvalStatus(p.getApprovalStatus())
-                        .company(CompanyDto.builder()
-                                .uuid(p.getCompanyId())
-                                .code(p.getCompanyCode())
-                                .name(p.getCompanyName())
-                                .build())
-                        .permissions(p.getPermissions())
-                        .build())
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(dtoList, pageable, projectionPage.getTotalElements());
-    }
-
-    @Override
-    public AdminInfoDto adminProfile() {
-        Member member = authManager.getMember();
-        return MemberMapper.toAdminDto(member);
-    }
-
-    @Override
-    public void updateAdminProfile(AdminInfoDto adminInfoDto) {
-// 1. In a real scenario, you'd get the current Admin's UUID from the AuthManager
-        UUID adminUuid = authManager.getBaseMemberUuid();
-
-        Member admin = memberRepository.findById(adminUuid)
-                .orElseThrow(() -> new NoSuchUserException("Admin not found"));
-
-        // 2. Map changes (Passing aesConverter for the phone number)
-        MemberMapper.updateAdminFromDto(adminInfoDto, admin, aesConverter);
+        // 4. Mapping (The 'Select' equivalent)
+        return memberPage.map(MemberMapper::toMemberListDto);
     }
 
     @Override

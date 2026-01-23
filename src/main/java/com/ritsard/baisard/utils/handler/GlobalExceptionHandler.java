@@ -66,6 +66,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.validation.FieldError;
@@ -753,12 +754,23 @@ public class GlobalExceptionHandler {
         String errorId = this.generateErrorId();
         MDC.put("errorId", errorId);
 
+        // Get current authentication if available
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = (auth != null) ? auth.getName() : "anonymous";
+        String authorities = (auth != null && auth.getAuthorities() != null)
+                ? auth.getAuthorities().stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(", "))
+                : "none";
+
         log.warn("\n==================== AUTHORIZATION DENIED ====================\n" +
                         "🆔 Error ID: {}\n" +
                         "📍 Request Info:\n   - URL: {} {}\n   - Client IP: {}\n" +
+                        "👤 Authenticated user: {}\n" +
+                        "🔑 Authorities: {}\n" +
                         "🔴 Message: {}",
                 errorId, request.getMethod(), request.getRequestURI(),
-                request.getRemoteAddr(), ex.getMessage());
+                request.getRemoteAddr(), username, authorities, ex.getMessage());
 
         ApiResponse response = ApiResponse.error(
                 ErrorCode.FORBIDDEN_ERROR,

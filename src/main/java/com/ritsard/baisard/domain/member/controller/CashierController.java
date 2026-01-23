@@ -105,45 +105,4 @@ public class CashierController {
 
         return ApiResponse.ok(null, "Cash withdrawn from drawer successfully");
     }
-    /* =========================================================
-       CASHIER MANAGEMENT (ADMIN)
-       ========================================================= */
-
-    @GetMapping("/cashiers/{cashierId}")
-    @Operation(summary = "Get cashier info")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ApiResponse<CashierInfoDto> cashierInfo(
-            @PathVariable UUID cashierId
-    ) {
-        return ApiResponse.ok(
-                cashierService.cashierInfo(cashierId),
-                "Cashier info fetched successfully"
-        );
-    }
-
-    @PutMapping("/cashiers")
-    @Operation(summary = "Update cashier info")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ApiResponse<?> updateCashierInfo(
-            @Valid @RequestBody CashierInfoDto dto
-    ) {
-        cashierService.updateCashierInfo(dto);
-        return ApiResponse.ok("Cashier info updated successfully");
-    }
-
-    @GetMapping("/my-cashiers")
-    @Operation(summary = "Get my cashiers")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ApiResponse<Page<MyCashiersDto>> myCashiers(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(defaultValue = "identifier") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction
-    ) {
-        return ApiResponse.ok(
-                cashierService.myCashiers(keyword, page, size, sortBy, direction),
-                "Cashiers fetched successfully"
-        );
-    }
 }

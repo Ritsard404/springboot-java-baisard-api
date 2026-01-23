@@ -45,8 +45,8 @@ public class SecurityConfig implements WebMvcConfigurer {
                 "/api-docs/**",
                 "/api/images/**",
                 basePath + "/auth/**",
-                basePath + "/public/**",
-                basePath + "/**"
+                basePath + "/public/**"
+//                basePath + "/**"
 //                basePath + "/auth/login",
 //                basePath + "/auth/signup",
 //                basePath + "/auth/sign-up/user",

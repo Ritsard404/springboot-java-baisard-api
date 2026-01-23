@@ -1,9 +1,6 @@
 package com.ritsard.baisard.domain.member.service;
 
-import com.ritsard.baisard.domain.member.dto.response.AdminInfoDto;
-import com.ritsard.baisard.domain.member.dto.response.CashierInfoDto;
 import com.ritsard.baisard.domain.member.dto.response.MemberListDto;
-import com.ritsard.baisard.domain.member.dto.response.MyCashiersDto;
 import com.ritsard.baisard.domain.member.enums.MemberApprovalStatus;
 import org.springframework.data.domain.Page;
 
@@ -20,10 +17,6 @@ public interface MemberService {
             String sortBy,
             String direction
     );
-
-    AdminInfoDto adminProfile();
-
-    void updateAdminProfile(AdminInfoDto adminInfoDto);
 
 
     void approveMember(UUID memberId);
