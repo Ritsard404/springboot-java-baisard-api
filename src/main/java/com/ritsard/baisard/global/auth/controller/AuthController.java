@@ -1,7 +1,9 @@
 package com.ritsard.baisard.global.auth.controller;
 
 import com.ritsard.baisard.domain.member.entity.Member;
+import com.ritsard.baisard.global.auth.dto.request.SignUpAdminDto;
 import com.ritsard.baisard.global.auth.dto.request.SignupRequestDto;
+import com.ritsard.baisard.global.auth.dto.request.UpdateMemberPasswordDto;
 import com.ritsard.baisard.global.auth.service.AuthService;
 import com.ritsard.baisard.global.auth.service.AuthServiceImpl;
 import com.ritsard.baisard.jwt.dto.login.LoginRequestDto;
@@ -16,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -55,13 +58,14 @@ public class AuthController {
     @Operation(summary = "Admin Registration")
     @PostMapping("/register/admin")
     public ApiResponse<?> registerAdmin(
-            @Valid @RequestBody SignupRequestDto dto
+            @Valid @RequestBody SignUpAdminDto dto
     ) throws CryptoKeyException, EncryptionException {
         authService.registerAdmin(dto);
-        return ApiResponse.ok();
+        return ApiResponse.ok("Account created successfully! Wait for the account approval.");
     }
 
-    @Operation(summary = "Cashier Registration")
+    @Operation(summary = "Cashier Registration (ADMIN)")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/register/cashier")
     public ApiResponse<?> registerCashier(
             @Valid @RequestBody SignupRequestDto dto
@@ -70,12 +74,13 @@ public class AuthController {
         return ApiResponse.ok();
     }
 
-    @Operation(summary = "Approve Member (SUPERADMIN only)")
-    @PostMapping("/approve/{memberId}")
-    public ApiResponse<?> approveMember(
-            @PathVariable UUID memberId
+    @Operation(summary = "Reset / Update member password")
+    @PutMapping("/password/reset")
+//    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<?> resetPassword(
+            @Valid @RequestBody UpdateMemberPasswordDto dto
     ) {
-        authService.approveMember(memberId);
-        return ApiResponse.ok();
+        authService.resetPassword(dto);
+        return ApiResponse.ok("Password updated successfully");
     }
 }

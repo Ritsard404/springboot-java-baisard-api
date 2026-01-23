@@ -1,19 +1,25 @@
 package com.ritsard.baisard.domain.member.service;
 
+import com.ritsard.baisard.domain.member.dto.response.CashierInfoDto;
+import com.ritsard.baisard.domain.member.dto.response.MyCashiersDto;
 import com.ritsard.baisard.domain.member.entity.Member;
 import com.ritsard.baisard.domain.member.entity.Timestamp;
+import com.ritsard.baisard.domain.member.mapper.MemberMapper;
 import com.ritsard.baisard.domain.member.repository.MemberRepository;
 import com.ritsard.baisard.domain.member.repository.PosTerminalInfoRepository;
 import com.ritsard.baisard.domain.member.repository.TimestampRepository;
+import com.ritsard.baisard.domain.member.repository.projections.MyCashiersProjection;
 import com.ritsard.baisard.domain.order.entity.Invoice;
 import com.ritsard.baisard.domain.order.entity.enums.InvoiceStatusType;
 import com.ritsard.baisard.domain.order.repository.InvoiceRepository;
 import com.ritsard.baisard.global.exception.ConflictException;
 import com.ritsard.baisard.jwt.repository.member.BaseMemberRepository;
 import com.ritsard.baisard.jwt.utils.AuthManager;
+import com.ritsard.baisard.utils.exceptions.NoSuchUserException;
 import com.ritsard.baisard.utils.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +28,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -152,5 +159,50 @@ public class CashierServiceImpl implements CashierService {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ConflictException("Amount must be greater than zero.");
         }
+    }
+
+    @Override
+    public CashierInfoDto cashierInfo(UUID cashierId) {
+        Member member = memberRepository.findById(cashierId)
+                .orElseThrow(() -> new NoSuchUserException("Cashier not found!"));
+        return MemberMapper.toCashierDto(member);
+    }
+
+    @Override
+    public void updateCashierInfo(CashierInfoDto dto) {
+        Member member = memberRepository.findById(dto.getCashierId())
+                .orElseThrow(() -> new NoSuchUserException("Cashier not found with ID: " + dto.getCashierId()));
+
+        MemberMapper.updateCashierFromDto(dto, member);
+    }
+
+    @Override
+    public Page<MyCashiersDto> myCashiers(String keyword, Integer page, Integer size, String sortBy, String direction) {
+// 1. Setup Pageable
+        Sort sort = (direction != null && direction.equalsIgnoreCase("desc")) ?
+                Sort.by(sortBy != null ? sortBy : "createdAt").descending() :
+                Sort.by(sortBy != null ? sortBy : "createdAt").ascending();
+
+        Pageable pageable = PageRequest.of(
+                page != null ? page : 0,
+                size != null ? size : 10,
+                sort
+        );
+        Member admin = authManager.getMember();
+        if (admin.getCompany() == null)
+            throw new ConflictException("Admin is not associated with any company.");
+
+        UUID companyId = admin.getCompany().getUuidCompany();
+
+        // 2. Fetch Projection from Repository
+        Page<MyCashiersProjection> projectionPage =
+                memberRepository.findMyCashiersWithProjection(keyword, companyId, pageable);
+        // 3. Map to DTO List
+        List<MyCashiersDto> dtoList = projectionPage.getContent().stream()
+                .map(MemberMapper::toMyCashiersDto)
+                .collect(Collectors.toList());
+
+        // 4. Return Page
+        return new PageImpl<>(dtoList, pageable, projectionPage.getTotalElements());
     }
 }

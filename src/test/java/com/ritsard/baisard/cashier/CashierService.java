@@ -1,18 +1,23 @@
 package com.ritsard.baisard.cashier;
 
+import com.ritsard.baisard.domain.member.dto.response.CashierInfoDto;
+import com.ritsard.baisard.domain.member.dto.response.MyCashiersDto;
 import com.ritsard.baisard.domain.member.entity.Member;
 import com.ritsard.baisard.domain.member.entity.PosTerminalInfo;
 import com.ritsard.baisard.domain.member.entity.Timestamp;
 import com.ritsard.baisard.domain.member.repository.MemberRepository;
 import com.ritsard.baisard.domain.member.repository.PosTerminalInfoRepository;
 import com.ritsard.baisard.domain.member.repository.TimestampRepository;
+import com.ritsard.baisard.domain.member.repository.projections.MyCashiersProjection;
 import com.ritsard.baisard.domain.member.service.CashierServiceImpl;
 import com.ritsard.baisard.domain.order.entity.Invoice;
 import com.ritsard.baisard.domain.order.entity.enums.InvoiceStatusType;
 import com.ritsard.baisard.domain.order.repository.InvoiceRepository;
 import com.ritsard.baisard.global.exception.ConflictException;
+import com.ritsard.baisard.jwt.model.entity.LoginCredential;
 import com.ritsard.baisard.jwt.repository.member.BaseMemberRepository;
 import com.ritsard.baisard.jwt.utils.AuthManager;
+import com.ritsard.baisard.utils.exceptions.NoSuchUserException;
 import com.ritsard.baisard.utils.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,12 +26,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -440,5 +449,108 @@ class CashierServiceTest {
                 .returnedAmount(returnedAmount)
                 .status(InvoiceStatusType.PAID)
                 .build();
+    }
+
+    @Test
+    @DisplayName("myCashiers - Should return paged DTOs successfully")
+    void myCashiers_shouldReturnPagedData() {
+        // Given
+        String keyword = "test";
+        UUID companyId = UUID.randomUUID();
+
+        // Mock Admin with Company
+        com.ritsard.baisard.domain.member.entity.Company mockCompany = mock(com.ritsard.baisard.domain.member.entity.Company.class);
+        when(mockCompany.getUuidCompany()).thenReturn(companyId);
+        cashier.setCompany(mockCompany);
+
+        when(authManager.getMember()).thenReturn(cashier);
+
+        // Mock Projection and Page
+        MyCashiersProjection projection = mock(MyCashiersProjection.class);
+        Page<MyCashiersProjection> projectionPage = new PageImpl<>(List.of(projection));
+
+        when(memberRepository.findMyCashiersWithProjection(eq(keyword), eq(companyId), any(Pageable.class)))
+                .thenReturn(projectionPage);
+
+        // When
+        Page<MyCashiersDto> result = cashierService.myCashiers(keyword, 0, 10, "createdAt", "asc");
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        verify(memberRepository).findMyCashiersWithProjection(eq(keyword), eq(companyId), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("myCashiers - Should throw exception if admin has no company")
+    void myCashiers_shouldThrowExceptionWhenNoCompany() {
+        // Given
+        when(authManager.getMember()).thenReturn(cashier);
+        cashier.setCompany(null); // No company associated
+
+        // When & Then
+        assertThrows(ConflictException.class, () ->
+                cashierService.myCashiers("key", 0, 10, null, null));
+    }
+
+    @Test
+    @DisplayName("updateCashierInfo - Should update successfully")
+    void updateCashierInfo_shouldUpdateSuccessfully() {
+        // Given
+        UUID cashierId = UUID.randomUUID();
+
+        // Using Builder to avoid constructor visibility issues
+        CashierInfoDto dto = CashierInfoDto.builder()
+                .cashierId(cashierId)
+                .name("Updated Name")
+                .isActive(true)
+                .identifier("new@email.com")
+                .build();
+
+        // Ensure cashier has a credential to update
+        cashier.getLoginCredentials().add(LoginCredential.builder()
+                .identifier("old@email.com")
+                .member(cashier)
+                .build());
+
+        when(memberRepository.findById(cashierId)).thenReturn(Optional.of(cashier));
+
+        // When
+        cashierService.updateCashierInfo(dto);
+
+        // Then
+        verify(memberRepository, times(1)).findById(cashierId);
+        assertEquals("Updated Name", cashier.getName());
+        assertEquals("new@email.com", cashier.getIdentifier());
+    }
+
+    @Test
+    @DisplayName("cashierInfo - Should return DTO when cashier exists")
+    void cashierInfo_shouldReturnDtoWhenCashierExists() {
+        // Given
+        UUID cashierId = UUID.randomUUID();
+        cashier.getLoginCredentials().add(LoginCredential.builder()
+                .identifier("cashier@test.com")
+                .member(cashier)
+                .build());
+        when(memberRepository.findById(cashierId)).thenReturn(Optional.of(cashier));
+
+        // When
+        CashierInfoDto result = cashierService.cashierInfo(cashierId);
+
+        // Then
+        assertNotNull(result);
+        verify(memberRepository, times(1)).findById(cashierId);
+    }
+
+    @Test
+    @DisplayName("cashierInfo - Should throw NoSuchUserException when cashier not found")
+    void cashierInfo_shouldThrowExceptionWhenNotFound() {
+        // Given
+        UUID cashierId = UUID.randomUUID();
+        when(memberRepository.findById(cashierId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(NoSuchUserException.class, () -> cashierService.cashierInfo(cashierId));
     }
 }

@@ -25,31 +25,15 @@ import java.util.UUID;
 @SuperBuilder(toBuilder = true)
 @Table(name = "member")
 @Setter
-public class Member extends BaseMember implements FileLoadable<ImageFileInfo> {
+public class Member extends BaseMember {
+//    @Column(name = "access_path")
+//    private AccessPathType accessPath;
 
-    @Column(name = "referral_source", length = 500)
-    private String referralSource;
-
-    @Column(name = "access_path")
-    private AccessPathType accessPath;
-
-    @Column(name = "sms_code", length = 6)
-    private String smsCode;
-
-    @Column(name = "smsExpiration")
-    private Instant smsExpiration;
-
-    @Column(name = "introduction", columnDefinition = "TEXT")
-    private String introduction;
-
-    @Column(name = "profile_img_url", length = 500)
-    private String profileImageUrl;
-
-    @Column(name = "logo_img_url", length = 500)
-    private String logoImageUrl;
-
-    @Column(name = "logo_url_link", length = 500)
-    private String logoUrlLink;
+//    @Column(name = "sms_code", length = 6)
+//    private String smsCode;
+//
+//    @Column(name = "smsExpiration")
+//    private Instant smsExpiration;
 
     @Column(name = "member_is_deleted", nullable = false)
     @Builder.Default
@@ -68,34 +52,13 @@ public class Member extends BaseMember implements FileLoadable<ImageFileInfo> {
     @Column(name = "approved_at")
     private Instant approvedAt;
 
-    @Column(name = "approved_by")
-    private UUID approvedBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by")
+    private Member approvedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uuid_company")
     private Company company;
-
-
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "member_images", joinColumns = @JoinColumn(name = "uuid_member"))
-    @Builder.Default
-    private List<ImageFileInfo> images = new ArrayList<>();
-
-
-    @Override
-    public List<ImageFileInfo> getFileList() {
-        return this.images;
-    }
-
-    @Override
-    public void setFileList(List<ImageFileInfo> files) {
-        this.images = files;
-    }
-
-    @Override
-    public UUID getId() {
-        return this.getUuidMember();
-    }
 
     public String getClassification() {
         List<String> types = this.getPermissions().stream()
@@ -116,16 +79,16 @@ public class Member extends BaseMember implements FileLoadable<ImageFileInfo> {
                 .orElse(null);
     }
 
-    // Add soft delete methods for Member
-    public void softDeleteMember() {
-        this.memberIsDeleted = true;
-        this.memberDeletedAt = Instant.now();
-    }
-
-    public void restoreMember() {
-        this.memberIsDeleted = false;
-        this.memberDeletedAt = null;
-    }
+//    // Add soft delete methods for Member
+//    public void softDeleteMember() {
+//        this.memberIsDeleted = true;
+//        this.memberDeletedAt = Instant.now();
+//    }
+//
+//    public void restoreMember() {
+//        this.memberIsDeleted = false;
+//        this.memberDeletedAt = null;
+//    }
 
     public boolean isMemberDeleted() {
         return this.memberIsDeleted;
@@ -140,9 +103,12 @@ public class Member extends BaseMember implements FileLoadable<ImageFileInfo> {
         return approvalStatus == MemberApprovalStatus.APPROVED;
     }
 
-    public void approve(UUID superAdminId) {
+    public void approve(Member superAdmin) {
+        if (superAdmin == null) 
+            throw new IllegalArgumentException("Approver cannot be null");
+
         this.approvalStatus = MemberApprovalStatus.APPROVED;
         this.approvedAt = Instant.now();
-        this.approvedBy = superAdminId;
+        this.approvedBy = superAdmin;
     }
 }

@@ -4,7 +4,9 @@ import com.ritsard.baisard.domain.member.entity.Company;
 import com.ritsard.baisard.domain.member.enums.MemberApprovalStatus;
 import com.ritsard.baisard.domain.member.enums.PermissionType;
 import com.ritsard.baisard.domain.member.entity.Member;
+import com.ritsard.baisard.global.auth.dto.request.SignUpAdminDto;
 import com.ritsard.baisard.global.auth.dto.request.SignupRequestDto;
+import com.ritsard.baisard.global.auth.dto.request.UpdateMemberPasswordDto;
 import com.ritsard.baisard.jwt.dto.login.LoginRequestDto;
 import com.ritsard.baisard.jwt.dto.login.LoginResponseDto;
 import com.ritsard.baisard.jwt.generator.TokenProvider;
@@ -87,7 +89,7 @@ public class AuthServiceImpl extends SignServiceImpl<Member> implements AuthServ
     }
 
     @Override
-    public void registerAdmin(SignupRequestDto dto) throws CryptoKeyException, EncryptionException {
+    public void registerAdmin(SignUpAdminDto dto) throws CryptoKeyException, EncryptionException {
 
         Company company = Company.builder()
                 .name(dto.getCompanyName())
@@ -101,6 +103,7 @@ public class AuthServiceImpl extends SignServiceImpl<Member> implements AuthServ
                 .company(company)
                 .approvalStatus(MemberApprovalStatus.PENDING)
                 .build();
+
         signup(dto, member, Set.of(PermissionType.ADMIN.toString()));
     }
 
@@ -114,29 +117,18 @@ public class AuthServiceImpl extends SignServiceImpl<Member> implements AuthServ
 
     @Override
     public void registerCashier(SignupRequestDto signupRequestDto) throws CryptoKeyException, EncryptionException {
+        Member admin = authManager.getMember();
         Member member = Member.builder()
+                .company(admin.getCompany())
                 .approvalStatus(MemberApprovalStatus.APPROVED)
                 .build();
         signup(signupRequestDto, member, Set.of(PermissionType.CASHIER.toString()));
     }
 
     @Override
-    public void approveMember(UUID memberId) {
-
-        Member approver = authManager.getMember();
-
-        boolean isSuperAdmin = approver.getPermissions().stream()
-                .anyMatch(p -> PermissionType.SUPERADMIN.name()
-                        .equals(p.getPermissionType()));
-
-        if (!isSuperAdmin) {
-            throw new SecurityException("Only SUPERADMIN can approve members");
-        }
-
-        Member member = baseMemberRepository.findById(memberId)
-                .orElseThrow(() -> new NotFoundException("Member not found"));
-
-        member.approve(approver.getId());
+    public void resetPassword(UpdateMemberPasswordDto dto) {
+        validateResetPasswordTarget(dto.getIdentifier(), dto.getEmail());
+        resetPassword(dto.getIdentifier(), dto.getPassword());
     }
 
 }

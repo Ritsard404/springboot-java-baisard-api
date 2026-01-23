@@ -1,6 +1,6 @@
 package com.ritsard.baisard.domain.member.controller;
 
-import com.ritsard.baisard.domain.member.dto.response.MemberListDto;
+import com.ritsard.baisard.domain.member.dto.response.*;
 import com.ritsard.baisard.domain.member.enums.MemberApprovalStatus;
 import com.ritsard.baisard.domain.member.service.MemberService;
 import com.ritsard.baisard.utils.dto.ApiResponse;
@@ -19,17 +19,18 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/members")
 @RequiredArgsConstructor
-//    @PreAuthorize("hasAuthority('SUPERADMIN')")
 @Tag(name = "Members", description = "APIs for managing members")
 public class MemberController {
 
     private final MemberService memberService;
 
+    /* =========================================================
+       MEMBER LIST (SUPERADMIN)
+       ========================================================= */
+
     @GetMapping
-    @Operation(
-            summary = "Get members",
-            description = "Retrieve members with optional keyword search, approval status, company filter, pagination, and sorting. Keyword searches identifier first, then company name."
-    )
+    @Operation(summary = "Get members")
+    @PreAuthorize("hasAuthority('SUPERADMIN')")
     public ApiResponse<Page<MemberListDto>> getMembers(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) MemberApprovalStatus approvalStatus,
@@ -39,9 +40,6 @@ public class MemberController {
             @RequestParam(defaultValue = "identifier") String sortBy,
             @RequestParam(defaultValue = "asc") String direction
     ) {
-        log.info("Fetching members with keyword: {}, approvalStatus: {}, companyId: {}, page: {}, size: {}, sortBy: {}, direction: {}",
-                keyword, approvalStatus, companyId, page, size, sortBy, direction);
-
         Page<MemberListDto> members = memberService.getMembers(
                 keyword,
                 approvalStatus,
@@ -53,5 +51,64 @@ public class MemberController {
         );
 
         return ApiResponse.ok(members, "Members fetched successfully");
+    }
+
+    /* =========================================================
+       ADMIN PROFILE
+       ========================================================= */
+
+    @GetMapping("/admin/profile")
+    @Operation(summary = "Get admin profile")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
+    public ApiResponse<AdminInfoDto> adminProfile() {
+        return ApiResponse.ok(
+                memberService.adminProfile(),
+                "Admin profile fetched successfully"
+        );
+    }
+
+    @PutMapping("/admin/profile")
+    @Operation(summary = "Update admin profile")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
+    public ApiResponse<?> updateAdminProfile(
+            @Valid @RequestBody AdminInfoDto dto
+    ) {
+        memberService.updateAdminProfile(dto);
+        return ApiResponse.ok("Admin profile updated successfully");
+    }
+
+
+    /* =========================================================
+       ACCOUNT STATE (SUPERADMIN)
+       ========================================================= */
+
+    @PostMapping("/approve/{memberId}")
+    @Operation(summary = "Approve member")
+    @PreAuthorize("hasAuthority('SUPERADMIN')")
+    public ApiResponse<?> approveMember(
+            @PathVariable UUID memberId
+    ) {
+        memberService.approveMember(memberId);
+        return ApiResponse.ok("Member approved successfully");
+    }
+
+    @PostMapping("/activate/{memberId}")
+    @Operation(summary = "Activate member")
+    @PreAuthorize("hasAuthority('SUPERADMIN')")
+    public ApiResponse<?> activateMember(
+            @PathVariable UUID memberId
+    ) {
+        memberService.activateMember(memberId);
+        return ApiResponse.ok("Member activated successfully");
+    }
+
+    @PostMapping("/deactivate/{memberId}")
+    @Operation(summary = "Deactivate member")
+    @PreAuthorize("hasAuthority('SUPERADMIN')")
+    public ApiResponse<?> deactivateMember(
+            @PathVariable UUID memberId
+    ) {
+        memberService.deActivateMember(memberId);
+        return ApiResponse.ok("Member deactivated successfully");
     }
 }

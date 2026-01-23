@@ -1,37 +1,31 @@
+version: "3.9"
+
 services:
   baisard-api:
+    image: baisard-api:latest
     build:
       context: .
       dockerfile: Dockerfile
-    image: baisard-api:latest
     container_name: baisard-api
-    ports:
-      - "1234:1234"
+    environment:
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/app_db
+#      SPRING_DATASOURCE_USERNAME: postgres
+#      SPRING_DATASOURCE_PASSWORD: 200303
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+
+      SPRING_PROFILES_ACTIVE: dev
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/app_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: 200303
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      AES_SECRET_KEY: wotkdvu@fcz1246GsJwlddutn_dlswndtlrtkgud
-
-  frontend:
-    build:
-      context: ../baisard-ui   # This path relative to docker-compose.yml
-      dockerfile: Dockerfile
-    image: baisard-ui:latest
-    container_name: baisard-ui
     ports:
-      - "3000:3000"
-    depends_on:
-      - baisard-api
-    environment:
-      NEXT_PUBLIC_API_URL: http://baisard-api:1234
+      - "8080:8080"
+    networks:
+      - shared-network
 
   postgres:
     image: postgres:16-alpine
@@ -48,10 +42,19 @@ services:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       retries: 5
+    networks:
+      - shared-network
 
   redis:
-    image: redis:latest
+    image: redis:7-alpine
     container_name: redis
+    command: [ "redis-server", "--appendonly", "yes" ]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - shared-network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -61,6 +64,12 @@ services:
       PGADMIN_DEFAULT_PASSWORD: 200303
     ports:
       - "5050:80"
+    networks:
+      - shared-network
 
 volumes:
   baisard_data:
+
+networks:
+  shared-network:
+    driver: bridge

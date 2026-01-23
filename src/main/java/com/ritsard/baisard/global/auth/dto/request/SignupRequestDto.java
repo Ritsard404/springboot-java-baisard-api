@@ -10,11 +10,5 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
-@NoArgsConstructor
-@AllArgsConstructor
 public class SignupRequestDto extends com.ritsard.baisard.jwt.dto.signup.SignupRequestDto {
-    @NotNull
-    private String companyName;
-    @NotNull
-    private String companyCode;
 }
