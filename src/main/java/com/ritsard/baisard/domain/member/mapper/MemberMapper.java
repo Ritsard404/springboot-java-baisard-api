@@ -2,41 +2,15 @@ package com.ritsard.baisard.domain.member.mapper;
 
 import com.ritsard.baisard.domain.member.dto.response.*;
 import com.ritsard.baisard.domain.member.entity.Member;
-import com.ritsard.baisard.domain.member.repository.projections.MyCashiersProjection;
+import com.ritsard.baisard.global.utils.AESUtil;
 import com.ritsard.baisard.jwt.model.entity.LoginCredential;
-import com.ritsard.baisard.jwt.model.entity.Permission;
 import com.ritsard.baisard.utils.helper.AESConverter;
+import lombok.RequiredArgsConstructor;
 
-import java.util.stream.Collectors;
-
+@RequiredArgsConstructor
 public class MemberMapper {
-    public static MemberListDto toMemberListDto(Member member) {
-        return MemberListDto.builder()
-                .memberId(member.getUuidMember())
-                .identifier(member.getIdentifier())
-                .approvalStatus(member.getApprovalStatus().name())
-                .company(CompanyDto.builder()
-                        .uuid(member.getCompany() != null ? member.getCompany().getUuidCompany() : null)
-                        .code(member.getCompany() != null ? member.getCompany().getCode() : null)
-                        .name(member.getCompany() != null ? member.getCompany().getName() : null)
-                        .build())
-                .permissions(member.getPermissions().stream()
-                        .map(Permission::getPermissionType)
-                        .collect(Collectors.toList()))
-                .build();
-    }
 
-    public static MyCashiersDto toMyCashiersDto(Member p) {
-        return MyCashiersDto.builder()
-                .cashierId(p.getUuidMember())
-                .identifier(p.getIdentifier())
-                .name(p.getName())
-                .nickName(p.getNickname())
-                .isActive(p.isActive())
-                .build();
-    }
-
-    public static AdminInfoDto toAdminDto(Member member) {
+    public static AdminInfoDto toAdminDto(Member member, AESUtil aesUtil) {
         return AdminInfoDto.builder()
                 .identifier(member.getLoginCredentials().stream()
                         .map(LoginCredential::getIdentifier)
@@ -45,7 +19,7 @@ public class MemberMapper {
                 .name(member.getName())
                 .nickName(member.getNickname())
                 .email(member.getEmail())
-                .phoneNumber(member.getPhoneNumber())
+                .phoneNumber(aesUtil.decrypt(member.getPhoneNumber()))
                 .birthdate(member.getBirthdate())
                 .build();
     }

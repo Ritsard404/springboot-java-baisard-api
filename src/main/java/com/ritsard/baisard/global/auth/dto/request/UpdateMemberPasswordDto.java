@@ -19,13 +19,4 @@ public class UpdateMemberPasswordDto {
 
     @NotBlank(message = "Please confirm your password")
     private String confirmPassword;
-
-    // This method will be called during validation (@Valid)
-    @AssertTrue(message = "Passwords do not match")
-    public boolean isPasswordConfirmed() {
-        if (password == null || confirmPassword == null) {
-            return false;
-        }
-        return password.equals(confirmPassword);
-    }
 }

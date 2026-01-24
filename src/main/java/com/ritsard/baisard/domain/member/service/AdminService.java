@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public interface AdminService {
 
-    AdminInfoDto adminProfile();
+    AdminInfoDto adminProfile(UUID adminId);
 
     void updateAdminProfile(AdminInfoDto adminInfoDto);
 

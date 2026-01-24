@@ -97,7 +97,7 @@ public class SecurityConfig implements WebMvcConfigurer {
 
                     // Access control by permission
                     authorize
-                            .requestMatchers(basePath + "/admin/**").hasAuthority("ADMIN")
+                            .requestMatchers(basePath + "/admin/**").hasAnyAuthority("ADMIN", "SUPERADMIN")
                             .requestMatchers(basePath + "/common/**").authenticated()
                             .anyRequest().authenticated();
                 })

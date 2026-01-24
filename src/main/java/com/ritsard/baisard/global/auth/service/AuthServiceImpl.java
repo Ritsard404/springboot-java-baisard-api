@@ -8,6 +8,7 @@ import com.ritsard.baisard.domain.member.repository.CompanyRepository;
 import com.ritsard.baisard.domain.member.repository.MemberRepository;
 import com.ritsard.baisard.global.auth.dto.request.SignUpAdminDto;
 import com.ritsard.baisard.global.auth.dto.request.UpdateMemberPasswordDto;
+import com.ritsard.baisard.global.exception.ConflictException;
 import com.ritsard.baisard.jwt.dto.login.LoginRequestDto;
 import com.ritsard.baisard.jwt.dto.login.LoginResponseDto;
 import com.ritsard.baisard.jwt.dto.signup.SignupRequestDto;
@@ -130,6 +131,8 @@ public class AuthServiceImpl extends SignServiceImpl<Member> implements AuthServ
 
     @Override
     public void resetPassword(UpdateMemberPasswordDto dto) {
+        if (!dto.getPassword().equals(dto.getConfirmPassword()))
+            throw new ConflictException("Password do not match");
         validateResetPasswordTarget(dto.getIdentifier(), dto.getEmail());
         resetPassword(dto.getIdentifier(), dto.getPassword());
     }

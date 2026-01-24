@@ -1,6 +1,7 @@
 package com.ritsard.baisard.domain.member.service;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ritsard.baisard.domain.member.dto.request.UpdateCompanyDto;
 import com.ritsard.baisard.domain.member.dto.response.AdminInfoDto;
 import com.ritsard.baisard.domain.member.dto.response.CashierInfoDto;
@@ -12,11 +13,12 @@ import com.ritsard.baisard.domain.member.entity.QMember;
 import com.ritsard.baisard.domain.member.enums.PermissionType;
 import com.ritsard.baisard.domain.member.mapper.CompanyMapper;
 import com.ritsard.baisard.domain.member.mapper.MemberMapper;
+import com.ritsard.baisard.domain.member.repository.AdminRepositoryQuery;
 import com.ritsard.baisard.domain.member.repository.CompanyRepository;
 import com.ritsard.baisard.domain.member.repository.MemberRepository;
 import com.ritsard.baisard.domain.member.repository.PosTerminalInfoRepository;
-import com.ritsard.baisard.domain.member.repository.projections.MyCashiersProjection;
 import com.ritsard.baisard.global.exception.ConflictException;
+import com.ritsard.baisard.global.utils.AESUtil;
 import com.ritsard.baisard.jwt.utils.AuthManager;
 import com.ritsard.baisard.utils.exceptions.NoSuchUserException;
 import com.ritsard.baisard.utils.helper.AESConverter;
@@ -26,9 +28,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -38,14 +38,27 @@ public class AdminServiceImpl implements AdminService {
     private final MemberRepository memberRepository;
     private final AuthManager<Member> authManager;
     private final PosTerminalInfoRepository posTerminalInfoRepository;
+    private final JPAQueryFactory queryFactory;
     private final CompanyRepository companyRepository;
     private final AESConverter aesConverter;
     private final CompanyMapper companyMapper;
+    private final AdminRepositoryQuery adminRepositoryQuery;
+    private final AESUtil aesUtil;
 
     @Override
-    public AdminInfoDto adminProfile() {
+    public AdminInfoDto adminProfile(UUID adminId) {
         Member member = authManager.getMember();
-        return MemberMapper.toAdminDto(member);
+
+        // Logged-in user is ADMIN → use session user
+        if (PermissionType.ADMIN.equals(member.getClassification()))
+            return MemberMapper.toAdminDto(member, aesUtil);
+
+
+        // Not ADMIN → fetch by provided ID
+        Member target = memberRepository.findById(adminId)
+                .orElseThrow(() -> new NoSuchUserException("User not found"));
+
+        return MemberMapper.toAdminDto(target, aesUtil);
     }
 
     @Override
@@ -92,21 +105,18 @@ public class AdminServiceImpl implements AdminService {
     public Page<MyCashiersDto> myCashiers(String keyword, Integer page, Integer size, String sortBy, String direction) {
         QMember member = QMember.member;
 
-        // 1. Context Check
+        // 1. Business Logic / Context
         Member admin = authManager.getMember();
         if (admin.getCompany() == null)
             throw new ConflictException("Admin is not associated with any company.");
 
         UUID companyId = admin.getCompany().getUuidCompany();
 
-        // 2. Build Predicate (The "LINQ" way)
+        // 2. Build Search Predicate
         BooleanBuilder where = new BooleanBuilder();
-
-        // Filter by Company and PermissionType
         where.and(member.company.uuidCompany.eq(companyId));
         where.and(member.permissions.any().permissionType.eq(PermissionType.CASHIER.name()));
 
-        // Optional Keyword Search
         if (keyword != null && !keyword.isBlank()) {
             where.and(
                     member.name.containsIgnoreCase(keyword)
@@ -114,15 +124,14 @@ public class AdminServiceImpl implements AdminService {
             );
         }
 
-        // 3. Setup Pageable
+        // 3. Setup Pagination
         Pageable pageable = PageRequest.of(
                 page != null ? page : 0,
                 size != null ? size : 10,
                 "desc".equalsIgnoreCase(direction) ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending()
         );
 
-        // 4. Execute and Map (Using the mapper you already have)
-        return memberRepository.findAll(where, pageable)
-                .map(MemberMapper::toMyCashiersDto);
+        // 4. Call Custom Repository Projection
+        return adminRepositoryQuery.findMyCashiersProjected(where, pageable);
     }
 }

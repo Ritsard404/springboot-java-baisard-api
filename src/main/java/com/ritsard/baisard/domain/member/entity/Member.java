@@ -60,17 +60,18 @@ public class Member extends BaseMember {
     @JoinColumn(name = "uuid_company")
     private Company company;
 
-    public String getClassification() {
+    public PermissionType getClassification() {
         List<String> types = this.getPermissions().stream()
                 .map(Permission::getPermissionType)
                 .map(String::toUpperCase)
                 .toList();
 
-        if (types.contains("SUPERADMIN")) return PermissionType.SUPERADMIN.getDescription();
-        if (types.contains("ADMIN")) return PermissionType.ADMIN.getDescription();
-        if (types.contains("CASHIER")) return PermissionType.CASHIER.getDescription();
-        return PermissionType.USER.getDescription();
+        if (types.contains("SUPERADMIN")) return PermissionType.SUPERADMIN;
+        if (types.contains("ADMIN")) return PermissionType.ADMIN;
+        if (types.contains("CASHIER")) return PermissionType.CASHIER;
+        return PermissionType.USER;
     }
+
 
     public String getIdentifier() {
         return getLoginCredentials().stream()
@@ -104,7 +105,7 @@ public class Member extends BaseMember {
     }
 
     public void approve(Member superAdmin) {
-        if (superAdmin == null) 
+        if (superAdmin == null)
             throw new IllegalArgumentException("Approver cannot be null");
 
         this.approvalStatus = MemberApprovalStatus.APPROVED;

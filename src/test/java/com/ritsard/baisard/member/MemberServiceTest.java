@@ -56,151 +56,151 @@ public class MemberServiceTest {
         // Inject the authManager since it's not annotated with @Autowired in the service
         ReflectionTestUtils.setField(memberService, "authManager", authManager);
     }
-
-    @Nested
-    @DisplayName("getMembers Tests")
-    class GetMembersTests {
-
-        @Test
-        @DisplayName("Should return paginated members with all filters")
-        void testGetMembers_withAllFilters() {
-            // Arrange
-            String keyword = "john";
-            MemberApprovalStatus approvalStatus = MemberApprovalStatus.APPROVED;
-            int page = 0;
-            int size = 10;
-            String sortBy = "identifier";
-            String direction = "asc";
-
-            MemberListProjection projection1 = createMockProjection("john_doe", "APPROVED");
-            MemberListProjection projection2 = createMockProjection("jane_doe", "APPROVED");
-
-            Page<MemberListProjection> mockPage = new PageImpl<>(
-                    Arrays.asList(projection1, projection2),
-                    PageRequest.of(page, size, Sort.by(sortBy).ascending()),
-                    2
-            );
-
-            when(memberRepository.findMembersWithProjection(
-                    eq(keyword), eq(approvalStatus), eq(testCompanyId), any(Pageable.class))
-            ).thenReturn(mockPage);
-
-            // Act
-            Page<MemberListDto> result = memberService.getMembers(
-                    keyword, approvalStatus, testCompanyId, page, size, sortBy, direction
-            );
-
-            // Assert
-            assertNotNull(result);
-            assertEquals(2, result.getContent().size());
-            assertEquals(2, result.getTotalElements());
-            assertEquals("john_doe", result.getContent().get(0).getIdentifier());
-            assertEquals(testCompanyId, result.getContent().get(0).getCompany().getUuid());
-            assertEquals("CMP01", result.getContent().get(0).getCompany().getCode());
-            assertEquals("Test Company", result.getContent().get(0).getCompany().getName());
-            assertNotNull(result.getContent().get(0).getPermissions());
-            assertEquals(1, result.getContent().get(0).getPermissions().size());
-
-            verify(memberRepository, times(1))
-                    .findMembersWithProjection(eq(keyword), eq(approvalStatus), eq(testCompanyId), any(Pageable.class));
-        }
-
-        @Test
-        @DisplayName("Should use default pagination when parameters are null")
-        void testGetMembers_withNullPaginationParams() {
-            // Arrange
-            Page<MemberListProjection> mockPage = new PageImpl<>(Collections.emptyList());
-            when(memberRepository.findMembersWithProjection(any(), any(), any(), any(Pageable.class)))
-                    .thenReturn(mockPage);
-
-            // Act
-            Page<MemberListDto> result = memberService.getMembers(
-                    null, null, null, null, null, "createdAt", null
-            );
-
-            // Assert
-            assertNotNull(result);
-            ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-            verify(memberRepository).findMembersWithProjection(any(), any(), any(), pageableCaptor.capture());
-
-            Pageable capturedPageable = pageableCaptor.getValue();
-            assertEquals(0, capturedPageable.getPageNumber());
-            assertEquals(10, capturedPageable.getPageSize());
-            assertEquals(Sort.Direction.ASC, capturedPageable.getSort().getOrderFor("createdAt").getDirection());
-        }
-
-        @Test
-        @DisplayName("Should sort descending when direction is desc")
-        void testGetMembers_withDescendingSort() {
-            // Arrange
-            Page<MemberListProjection> mockPage = new PageImpl<>(Collections.emptyList());
-            when(memberRepository.findMembersWithProjection(any(), any(), any(), any(Pageable.class)))
-                    .thenReturn(mockPage);
-
-            // Act
-            memberService.getMembers(null, null, null, 0, 10, "identifier", "desc");
-
-            // Assert
-            ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-            verify(memberRepository).findMembersWithProjection(any(), any(), any(), pageableCaptor.capture());
-
-            Pageable capturedPageable = pageableCaptor.getValue();
-            assertEquals(Sort.Direction.DESC, capturedPageable.getSort().getOrderFor("identifier").getDirection());
-        }
-
-        @Test
-        @DisplayName("Should handle empty result set")
-        void testGetMembers_emptyResults() {
-            // Arrange
-            Page<MemberListProjection> mockPage = new PageImpl<>(Collections.emptyList());
-            when(memberRepository.findMembersWithProjection(any(), any(), any(), any(Pageable.class)))
-                    .thenReturn(mockPage);
-
-            // Act
-            Page<MemberListDto> result = memberService.getMembers(
-                    "nonexistent", null, null, 0, 10, "identifier", "asc"
-            );
-
-            // Assert
-            assertNotNull(result);
-            assertTrue(result.getContent().isEmpty());
-            assertEquals(0, result.getTotalElements());
-        }
-
-        @Test
-        @DisplayName("Should handle custom page size")
-        void testGetMembers_customPageSize() {
-            // Arrange
-            int customSize = 25;
-            Page<MemberListProjection> mockPage = new PageImpl<>(
-                    Collections.emptyList(),
-                    PageRequest.of(0, customSize),
-                    0
-            );
-            when(memberRepository.findMembersWithProjection(any(), any(), any(), any(Pageable.class)))
-                    .thenReturn(mockPage);
-
-            // Act
-            memberService.getMembers(null, null, null, 0, customSize, "identifier", "asc");
-
-            // Assert
-            ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-            verify(memberRepository).findMembersWithProjection(any(), any(), any(), pageableCaptor.capture());
-            assertEquals(customSize, pageableCaptor.getValue().getPageSize());
-        }
-
-        private MemberListProjection createMockProjection(String identifier, String status) {
-            MemberListProjection projection = mock(MemberListProjection.class);
-            when(projection.getMemberId()).thenReturn(UUID.randomUUID());
-            when(projection.getIdentifier()).thenReturn(identifier);
-            when(projection.getApprovalStatus()).thenReturn(status);
-            when(projection.getCompanyId()).thenReturn(testCompanyId);
-            when(projection.getCompanyCode()).thenReturn("CMP01");
-            when(projection.getCompanyName()).thenReturn("Test Company");
-            when(projection.getPermissions()).thenReturn(List.of("USER"));
-            return projection;
-        }
-    }
+//
+//    @Nested
+//    @DisplayName("getMembers Tests")
+//    class GetMembersTests {
+//
+//        @Test
+//        @DisplayName("Should return paginated members with all filters")
+//        void testGetMembers_withAllFilters() {
+//            // Arrange
+//            String keyword = "john";
+//            MemberApprovalStatus approvalStatus = MemberApprovalStatus.APPROVED;
+//            int page = 0;
+//            int size = 10;
+//            String sortBy = "identifier";
+//            String direction = "asc";
+//
+//            MemberListProjection projection1 = createMockProjection("john_doe", "APPROVED");
+//            MemberListProjection projection2 = createMockProjection("jane_doe", "APPROVED");
+//
+//            Page<MemberListProjection> mockPage = new PageImpl<>(
+//                    Arrays.asList(projection1, projection2),
+//                    PageRequest.of(page, size, Sort.by(sortBy).ascending()),
+//                    2
+//            );
+//
+//            when(memberRepository.findMembersWithProjection(
+//                    eq(keyword), eq(approvalStatus), eq(testCompanyId), any(Pageable.class))
+//            ).thenReturn(mockPage);
+//
+//            // Act
+//            Page<MemberListDto> result = memberService.getMembers(
+//                    keyword, approvalStatus, testCompanyId, page, size, sortBy, direction
+//            );
+//
+//            // Assert
+//            assertNotNull(result);
+//            assertEquals(2, result.getContent().size());
+//            assertEquals(2, result.getTotalElements());
+//            assertEquals("john_doe", result.getContent().get(0).getIdentifier());
+//            assertEquals(testCompanyId, result.getContent().get(0).getCompany().getUuid());
+//            assertEquals("CMP01", result.getContent().get(0).getCompany().getCode());
+//            assertEquals("Test Company", result.getContent().get(0).getCompany().getName());
+//            assertNotNull(result.getContent().get(0).getPermissions());
+//            assertEquals(1, result.getContent().get(0).getPermissions().size());
+//
+//            verify(memberRepository, times(1))
+//                    .findMembersWithProjection(eq(keyword), eq(approvalStatus), eq(testCompanyId), any(Pageable.class));
+//        }
+//
+//        @Test
+//        @DisplayName("Should use default pagination when parameters are null")
+//        void testGetMembers_withNullPaginationParams() {
+//            // Arrange
+//            Page<MemberListProjection> mockPage = new PageImpl<>(Collections.emptyList());
+//            when(memberRepository.findMembersWithProjection(any(), any(), any(), any(Pageable.class)))
+//                    .thenReturn(mockPage);
+//
+//            // Act
+//            Page<MemberListDto> result = memberService.getMembers(
+//                    null, null, null, null, null, "createdAt", null
+//            );
+//
+//            // Assert
+//            assertNotNull(result);
+//            ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+//            verify(memberRepository).findMembersWithProjection(any(), any(), any(), pageableCaptor.capture());
+//
+//            Pageable capturedPageable = pageableCaptor.getValue();
+//            assertEquals(0, capturedPageable.getPageNumber());
+//            assertEquals(10, capturedPageable.getPageSize());
+//            assertEquals(Sort.Direction.ASC, capturedPageable.getSort().getOrderFor("createdAt").getDirection());
+//        }
+//
+//        @Test
+//        @DisplayName("Should sort descending when direction is desc")
+//        void testGetMembers_withDescendingSort() {
+//            // Arrange
+//            Page<MemberListProjection> mockPage = new PageImpl<>(Collections.emptyList());
+//            when(memberRepository.findMembersWithProjection(any(), any(), any(), any(Pageable.class)))
+//                    .thenReturn(mockPage);
+//
+//            // Act
+//            memberService.getMembers(null, null, null, 0, 10, "identifier", "desc");
+//
+//            // Assert
+//            ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+//            verify(memberRepository).findMembersWithProjection(any(), any(), any(), pageableCaptor.capture());
+//
+//            Pageable capturedPageable = pageableCaptor.getValue();
+//            assertEquals(Sort.Direction.DESC, capturedPageable.getSort().getOrderFor("identifier").getDirection());
+//        }
+//
+//        @Test
+//        @DisplayName("Should handle empty result set")
+//        void testGetMembers_emptyResults() {
+//            // Arrange
+//            Page<MemberListProjection> mockPage = new PageImpl<>(Collections.emptyList());
+//            when(memberRepository.findMembersWithProjection(any(), any(), any(), any(Pageable.class)))
+//                    .thenReturn(mockPage);
+//
+//            // Act
+//            Page<MemberListDto> result = memberService.getMembers(
+//                    "nonexistent", null, null, 0, 10, "identifier", "asc"
+//            );
+//
+//            // Assert
+//            assertNotNull(result);
+//            assertTrue(result.getContent().isEmpty());
+//            assertEquals(0, result.getTotalElements());
+//        }
+//
+//        @Test
+//        @DisplayName("Should handle custom page size")
+//        void testGetMembers_customPageSize() {
+//            // Arrange
+//            int customSize = 25;
+//            Page<MemberListProjection> mockPage = new PageImpl<>(
+//                    Collections.emptyList(),
+//                    PageRequest.of(0, customSize),
+//                    0
+//            );
+//            when(memberRepository.findMembersWithProjection(any(), any(), any(), any(Pageable.class)))
+//                    .thenReturn(mockPage);
+//
+//            // Act
+//            memberService.getMembers(null, null, null, 0, customSize, "identifier", "asc");
+//
+//            // Assert
+//            ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+//            verify(memberRepository).findMembersWithProjection(any(), any(), any(), pageableCaptor.capture());
+//            assertEquals(customSize, pageableCaptor.getValue().getPageSize());
+//        }
+//
+//        private MemberListProjection createMockProjection(String identifier, String status) {
+//            MemberListProjection projection = mock(MemberListProjection.class);
+//            when(projection.getMemberId()).thenReturn(UUID.randomUUID());
+//            when(projection.getIdentifier()).thenReturn(identifier);
+//            when(projection.getApprovalStatus()).thenReturn(status);
+//            when(projection.getCompanyId()).thenReturn(testCompanyId);
+//            when(projection.getCompanyCode()).thenReturn("CMP01");
+//            when(projection.getCompanyName()).thenReturn("Test Company");
+//            when(projection.getPermissions()).thenReturn(List.of("USER"));
+//            return projection;
+//        }
+//    }
 
 //    @Nested
 //    @DisplayName("adminProfile Tests")

@@ -73,15 +73,18 @@ public class AdminController {
        ADMIN PROFILE
        ========================================================= */
 
-    @GetMapping("/profile")
+    @GetMapping("/profile/{adminId}")
     @Operation(summary = "Get admin profile")
     @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
-    public ApiResponse<AdminInfoDto> adminProfile() {
+    public ApiResponse<AdminInfoDto> adminProfile(
+            @PathVariable UUID adminId
+    ) {
         return ApiResponse.ok(
-                adminService.adminProfile(),
+                adminService.adminProfile(adminId),
                 "Admin profile fetched successfully"
         );
     }
+
 
     @PutMapping("/profile")
     @Operation(summary = "Update admin profile")
