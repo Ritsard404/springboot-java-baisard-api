@@ -3,6 +3,7 @@ package com.ritsard.baisard.domain.member.mapper;
 import com.ritsard.baisard.domain.member.dto.request.UpdateCompanyDto;
 import com.ritsard.baisard.domain.member.dto.response.CompanyDto;
 import com.ritsard.baisard.domain.member.entity.Company;
+import com.ritsard.baisard.global.utils.AESUtil;
 import com.ritsard.baisard.global.utils.ImageUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -15,11 +16,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CompanyMapper {
     private final ImageUtils imageUtils;
+    private final AESUtil aesUtil;
 
     public Company toCompany(UpdateCompanyDto dto) {
         Company company = Company.builder()
                 .name(dto.getName())
                 .code(dto.getCode())
+                .phone(dto.getPhone())
+                .email(dto.getEmail())
                 .build();
 
         List<String> fileIds = new ArrayList<>();

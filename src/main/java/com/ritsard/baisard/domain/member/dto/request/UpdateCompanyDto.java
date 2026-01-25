@@ -15,5 +15,9 @@ public class UpdateCompanyDto {
     private String code;
     @NotNull
     private String name;
+    @NotNull
+    private String email;
+    @NotNull
+    private String phone;
     private String encryptedCompanyImageId;
 }
