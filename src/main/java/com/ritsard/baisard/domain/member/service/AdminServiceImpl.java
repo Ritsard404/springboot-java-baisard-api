@@ -21,6 +21,7 @@ import com.ritsard.baisard.global.exception.ConflictException;
 import com.ritsard.baisard.global.utils.AESUtil;
 import com.ritsard.baisard.jwt.utils.AuthManager;
 import com.ritsard.baisard.utils.exceptions.NoSuchUserException;
+import com.ritsard.baisard.utils.exceptions.NotFoundException;
 import com.ritsard.baisard.utils.helper.AESConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -97,7 +98,11 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public void updateCompany(UpdateCompanyDto dto) {
         Company company = authManager.getMember().getCompany();
-        companyMapper.toCompany(dto);
+        if (company == null)
+            throw new NotFoundException("No company associated with this member");
+
+        // Update the existing managed entity
+        companyMapper.updateCompanyFromDto(dto, company);
         companyRepository.save(company);
     }
 

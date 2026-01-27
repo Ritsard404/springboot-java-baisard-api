@@ -1,6 +1,7 @@
 package com.ritsard.baisard.domain.member.mapper;
 
 import com.ritsard.baisard.domain.member.dto.response.*;
+import com.ritsard.baisard.domain.member.entity.Company;
 import com.ritsard.baisard.domain.member.entity.Member;
 import com.ritsard.baisard.global.utils.AESUtil;
 import com.ritsard.baisard.jwt.model.entity.LoginCredential;
@@ -80,5 +81,51 @@ public class MemberMapper {
             // Updates the primary login identifier
             member.getLoginCredentials().get(0).setIdentifier(dto.getIdentifier());
         }
+    }
+
+    public static MemberInfoDto toMemberInfoDto(Member member, AESUtil aesUtil, CompanyMapper companyMapper) {
+        return MemberInfoDto.builder()
+                .identifier(member.getIdentifier())
+                .name(member.getName())
+                .nickName(member.getNickname())
+                .email(member.getEmail())
+                .phoneNumber(aesUtil.decrypt(member.getPhoneNumber()))
+                .birthdate(member.getBirthdate())
+                .approvalStatus(member.getApprovalStatus())
+                .isActive(member.isActive())
+                .classification(member.getClassification())
+                .companyDto(member.getCompany() != null ? companyMapper.toCompanyDto(member.getCompany()) : null)
+                .build();
+    }
+
+    public static void updateMemberEntity(Member member, MemberInfoDto dto, AESUtil aesUtil) {
+        // 1. Update Base Fields
+        member.setName(dto.getName());
+        member.setNickname(dto.getNickName());
+        member.setEmail(dto.getEmail());
+        member.setBirthdate(dto.getBirthdate());
+
+        if (dto.getPhoneNumber() != null) {
+            member.setPhoneNumber(aesUtil.encrypt(dto.getPhoneNumber()));
+        }
+
+        // 2. Update Login Identifier (First credential)
+        member.getLoginCredentials().stream()
+                .findFirst()
+                .ifPresent(cred -> cred.setIdentifier(dto.getIdentifier()));
+
+        // 3. Update Company Details (Delegates to CompanyMapper)
+        if (dto.getCompanyDto() != null && member.getCompany() != null) {
+            // We reuse the logic you already have for companies
+            updateCompanyDetails(member.getCompany(), dto.getCompanyDto());
+        }
+    }
+
+    // Internal helper for the nested company update
+    private static void updateCompanyDetails(Company company, CompanyDto dto) {
+        company.setName(dto.getName());
+        company.setCode(dto.getCode());
+        company.setEmail(dto.getEmail());
+        company.setPhone(dto.getPhone());
     }
 }

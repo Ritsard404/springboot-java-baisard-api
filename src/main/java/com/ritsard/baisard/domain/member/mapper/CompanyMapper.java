@@ -55,10 +55,31 @@ public class CompanyMapper {
                 .name(company.getName())
                 .code(company.getCode())
                 .email(company.getEmail())
-                .phone(company.getPhone())
+                .phone(aesUtil.decrypt(company.getPhone()))
                 .logoImageUrl(
                         imageUtils.toAbsoluteUrl(company.getLogoImageUrl())
                 )
                 .build();
+    }
+
+    public void updateCompanyFromDto(UpdateCompanyDto dto, Company company) {
+        company.setName(dto.getName());
+        company.setCode(dto.getCode());
+        company.setPhone(dto.getPhone());
+        company.setEmail(dto.getEmail());
+
+        if (dto.getEncryptedCompanyImageId() != null) {
+            List<String> fileIds = List.of(dto.getEncryptedCompanyImageId());
+            try {
+                company.setFileIds(fileIds);
+                imageUtils.setImageUrlFromFiles(
+                        dto.getEncryptedCompanyImageId(),
+                        company.getFileList(),
+                        company::setLogoImageUrl
+                );
+            } catch (IOException e) {
+                throw new RuntimeException("Error updating company image", e);
+            }
+        }
     }
 }

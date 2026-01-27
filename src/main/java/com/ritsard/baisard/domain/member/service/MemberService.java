@@ -1,5 +1,6 @@
 package com.ritsard.baisard.domain.member.service;
 
+import com.ritsard.baisard.domain.member.dto.response.MemberInfoDto;
 import com.ritsard.baisard.domain.member.dto.response.MemberListDto;
 import com.ritsard.baisard.domain.member.enums.MemberApprovalStatus;
 import org.springframework.data.domain.Page;
@@ -11,13 +12,15 @@ public interface MemberService {
     Page<MemberListDto> getMembers(
             String keyword,
             MemberApprovalStatus approvalStatus,
-            UUID companyId,
             Integer page,
             Integer size,
             String sortBy,
             String direction
     );
 
+    MemberInfoDto getMember(UUID memberId);
+
+    void updateMemberInfo(MemberInfoDto memberInfoDto, UUID memberId);
 
     void approveMember(UUID memberId);
 

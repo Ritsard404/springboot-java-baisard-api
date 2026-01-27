@@ -21,6 +21,7 @@ import java.util.UUID;
 @RequestMapping("/members")
 @RequiredArgsConstructor
 @Tag(name = "Members", description = "APIs for managing members")
+@PreAuthorize("hasAnyAuthority('SUPERADMIN')")
 public class MemberController {
 
     private final MemberService memberService;
@@ -31,11 +32,9 @@ public class MemberController {
 
     @GetMapping
     @Operation(summary = "Get members")
-    @PreAuthorize("hasAnyAuthority('SUPERADMIN')")
     public ApiResponse<Page<MemberListDto>> getMembers(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) MemberApprovalStatus approvalStatus,
-            @RequestParam(required = false) UUID companyId,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(defaultValue = "identifier") String sortBy,
@@ -45,7 +44,6 @@ public class MemberController {
         Page<MemberListDto> members = memberService.getMembers(
                 keyword,
                 approvalStatus,
-                companyId,
                 page,
                 size,
                 sortBy,
@@ -55,6 +53,25 @@ public class MemberController {
         return ApiResponse.ok(members, "Members fetched successfully");
     }
 
+    @GetMapping("/{memberId}")
+    @Operation(summary = "Get member information")
+    public ApiResponse<MemberInfoDto> getMember(
+            @PathVariable UUID memberId
+    ) {
+        MemberInfoDto memberInfo = memberService.getMember(memberId);
+        return ApiResponse.ok(memberInfo);
+    }
+
+    @PutMapping("/{memberId}")
+    @Operation(summary = "Update member and company information")
+    public ApiResponse<?> updateMember(
+            @PathVariable UUID memberId,
+            @Valid @RequestBody MemberInfoDto memberInfoDto
+    ) {
+        memberService.updateMemberInfo(memberInfoDto, memberId);
+        return ApiResponse.ok("Member information updated successfully");
+    }
+
 
     /* =========================================================
        ACCOUNT STATE (SUPERADMIN)
@@ -62,7 +79,6 @@ public class MemberController {
 
     @PostMapping("/approve/{memberId}")
     @Operation(summary = "Approve member")
-    @PreAuthorize("hasAuthority('SUPERADMIN')")
     public ApiResponse<?> approveMember(
             @PathVariable UUID memberId
     ) {
@@ -72,7 +88,6 @@ public class MemberController {
 
     @PostMapping("/activate/{memberId}")
     @Operation(summary = "Activate member")
-    @PreAuthorize("hasAuthority('SUPERADMIN')")
     public ApiResponse<?> activateMember(
             @PathVariable UUID memberId
     ) {
@@ -82,7 +97,6 @@ public class MemberController {
 
     @PostMapping("/deactivate/{memberId}")
     @Operation(summary = "Deactivate member")
-    @PreAuthorize("hasAuthority('SUPERADMIN')")
     public ApiResponse<?> deactivateMember(
             @PathVariable UUID memberId
     ) {
