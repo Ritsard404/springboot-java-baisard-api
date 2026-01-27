@@ -11,9 +11,13 @@ import com.ritsard.baisard.domain.member.enums.MemberApprovalStatus;
 import com.ritsard.baisard.domain.member.mapper.CompanyMapper;
 import com.ritsard.baisard.domain.member.mapper.MemberMapper;
 import com.ritsard.baisard.domain.member.repository.MemberRepository;
+import com.ritsard.baisard.global.exception.ConflictException;
 import com.ritsard.baisard.global.utils.AESUtil;
+import com.ritsard.baisard.jwt.model.entity.LoginCredential;
 import com.ritsard.baisard.jwt.model.entity.QLoginCredential;
 import com.ritsard.baisard.jwt.model.entity.QPermission;
+import com.ritsard.baisard.jwt.model.enums.LoginType;
+import com.ritsard.baisard.jwt.repository.login.LoginCredentialRepository;
 import com.ritsard.baisard.jwt.utils.AuthManager;
 import com.ritsard.baisard.utils.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +40,7 @@ import java.util.stream.Collectors;
 public class MemberServiceImpl implements MemberService {
 
     private final JPAQueryFactory queryFactory;
+    private final LoginCredentialRepository loginCredentialRepository;
     private final CompanyMapper companyMapper;
     private final MemberRepository memberRepository;
     private final AESUtil aesUtil;
@@ -121,6 +126,28 @@ public class MemberServiceImpl implements MemberService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
         MemberMapper.updateMemberEntity(member, memberInfoDto, aesUtil);
+        String newId = memberInfoDto.getIdentifier();
+        String oldId = member.getIdentifier(); // Uses your entity's getIdentifier() helper
+
+        if (newId != null && !newId.equals(oldId)) {
+
+            // Check if the NEW identifier is already taken by anyone else
+            if (loginCredentialRepository.existsByIdentifier(newId)) {
+                throw new ConflictException("Identifier '" + newId + "' is already in use.");
+            }
+
+            // Find the 'GENERAL' login credential for this specific member
+            LoginCredential credential = member.getLoginCredentials().stream()
+                    .filter(c -> c.getLoginType() == LoginType.GENERAL)
+                    .findFirst()
+                    .orElseThrow(() -> new NotFoundException("Local login credential not found for this member"));
+
+            // Update the credential object
+            credential.setIdentifier(newId);
+
+            // Since we have CascadeType.ALL on the loginCredentials list in BaseMember,
+            // saving the member will save the updated credential.
+        }
         memberRepository.save(member);
     }
 

@@ -89,7 +89,7 @@ public class MemberMapper {
                 .name(member.getName())
                 .nickName(member.getNickname())
                 .email(member.getEmail())
-                .phoneNumber(aesUtil.decrypt(member.getPhoneNumber()))
+                .phoneNumber(member.getPhoneNumber())
                 .birthdate(member.getBirthdate())
                 .approvalStatus(member.getApprovalStatus())
                 .isActive(member.isActive())
@@ -104,15 +104,15 @@ public class MemberMapper {
         member.setNickname(dto.getNickName());
         member.setEmail(dto.getEmail());
         member.setBirthdate(dto.getBirthdate());
-
-        if (dto.getPhoneNumber() != null) {
-            member.setPhoneNumber(aesUtil.encrypt(dto.getPhoneNumber()));
-        }
+        member.setPhoneNumber(dto.getPhoneNumber());
+//        if (dto.getPhoneNumber() != null) {
+//            member.setPhoneNumber(aesUtil.encrypt(dto.getPhoneNumber()));
+//        }
 
         // 2. Update Login Identifier (First credential)
-        member.getLoginCredentials().stream()
-                .findFirst()
-                .ifPresent(cred -> cred.setIdentifier(dto.getIdentifier()));
+//        member.getLoginCredentials().stream()
+//                .findFirst()
+//                .ifPresent(cred -> cred.setIdentifier(dto.getIdentifier()));
 
         // 3. Update Company Details (Delegates to CompanyMapper)
         if (dto.getCompanyDto() != null && member.getCompany() != null) {

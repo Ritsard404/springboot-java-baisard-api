@@ -54,7 +54,7 @@ public class BaseMember extends BaseEntity {
     @Column(name = "email", length = 100)
     private String email;
 
-    @Convert(converter = EncryptedFieldConverter.class)
+//    @Convert(converter = EncryptedFieldConverter.class)
     @Column(name = "phone_number", length = 256)
     private String phoneNumber;
 

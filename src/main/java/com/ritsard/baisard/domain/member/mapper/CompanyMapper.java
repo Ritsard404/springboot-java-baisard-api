@@ -55,7 +55,7 @@ public class CompanyMapper {
                 .name(company.getName())
                 .code(company.getCode())
                 .email(company.getEmail())
-                .phone(aesUtil.decrypt(company.getPhone()))
+                .phone(company.getPhone())
                 .logoImageUrl(
                         imageUtils.toAbsoluteUrl(company.getLogoImageUrl())
                 )
