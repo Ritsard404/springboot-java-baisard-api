@@ -113,9 +113,15 @@ public class AuthServiceImpl extends SignServiceImpl<Member> implements AuthServ
 
     @Override
     public void registerSuperAdmin(SignupRequestDto signupRequestDto) throws CryptoKeyException, EncryptionException {
+
+        boolean alreadyExists = memberRepository.findAll().stream()
+                .anyMatch(m -> m.getClassification() == PermissionType.SUPERADMIN);
+        if (alreadyExists)
+            throw new ConflictException("Super Admin already exists in the system.");
         Member member = Member.builder()
                 .approvalStatus(MemberApprovalStatus.APPROVED)
                 .build();
+
         signup(signupRequestDto, member, Set.of(PermissionType.SUPERADMIN.toString()));
     }
 

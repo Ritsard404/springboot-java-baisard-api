@@ -1,6 +1,7 @@
 package com.ritsard.baisard.domain.member.service;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ritsard.baisard.domain.member.dto.response.MemberInfoDto;
 import com.ritsard.baisard.domain.member.dto.response.MemberListDto;
@@ -73,11 +74,12 @@ public class MemberServiceImpl implements MemberService {
 
 
         // We join permissions to get the type directly
-        List<com.querydsl.core.Tuple> tuples = queryFactory
+        List<Tuple> tuples = queryFactory
                 .select(
                         member.uuidMember,
                         login.identifier,
                         member.approvalStatus,
+                        member.isDeleted,
                         company.uuidCompany,
                         company.code,
                         company.name,
@@ -100,6 +102,7 @@ public class MemberServiceImpl implements MemberService {
                         tuple.get(member.uuidMember),
                         tuple.get(login.identifier),
                         tuple.get(member.approvalStatus),
+                        tuple.get(member.isDeleted),
                         tuple.get(company.uuidCompany),
                         tuple.get(company.code),
                         tuple.get(company.name),

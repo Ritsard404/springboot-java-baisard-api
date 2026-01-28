@@ -15,6 +15,7 @@ public class MemberListDto {
     private UUID memberId;
     private String identifier;
     private MemberApprovalStatus approvalStatus;
+    private Boolean isActive;
 
     private CompanyDto company;
     private String permission;
@@ -23,6 +24,7 @@ public class MemberListDto {
             UUID memberId,
             String identifier,
             MemberApprovalStatus approvalStatus, // Use Object or Enum type depending on your entity
+            Boolean isDeleted,
             UUID companyUuid,
             String companyCode,
             String companyName,
@@ -31,6 +33,7 @@ public class MemberListDto {
         this.memberId = memberId;
         this.identifier = identifier;
         this.approvalStatus = approvalStatus;
+        this.isActive = !isDeleted;
         this.company = CompanyDto.builder()
                 .uuid(companyUuid)
                 .code(companyCode)
