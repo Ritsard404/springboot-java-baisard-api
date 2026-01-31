@@ -5,7 +5,7 @@ import com.ritsard.baisard.domain.inventory.dto.request.ProductSaveDto;
 import com.ritsard.baisard.domain.inventory.dto.response.CategoryDto;
 import com.ritsard.baisard.domain.inventory.dto.response.ProductDto;
 import com.ritsard.baisard.domain.inventory.entity.Product;
-import com.ritsard.baisard.domain.inventory.service.IInventoryService;
+import com.ritsard.baisard.domain.inventory.service.InventoryService;
 import com.ritsard.baisard.file.controller.FileCrudable;
 import com.ritsard.baisard.file.entity.v2.ImageFileInfo;
 import com.ritsard.baisard.utils.dto.ApiResponse;
@@ -14,8 +14,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -27,7 +31,8 @@ import java.util.UUID;
 @Tag(name = "Inventory Management API (ADMIN & SUPERADMIN)", description = "Manage products, categories, and inventory transactions")
 //@PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
 public class InventoryController implements FileCrudable<Product, ImageFileInfo> {
-    private final IInventoryService inventoryService;// ==================== PRODUCT ENDPOINTS ====================
+    private final InventoryService inventoryService;
+    // ==================== PRODUCT ENDPOINTS ====================
 
     @GetMapping("/products")
     @Operation(summary = "Get product list", description = "Retrieve paginated and filtered product list")
@@ -168,5 +173,14 @@ public class InventoryController implements FileCrudable<Product, ImageFileInfo>
     public ApiResponse<?> recordTransaction(@Valid @RequestBody InventoryTransactionRequestDto request) {
         inventoryService.RecordInventoryTransaction(request);
         return ApiResponse.ok("Inventory transaction recorded successfully");
+    }
+
+    // ==================== BATCH OPERATIONS ====================
+
+    @PostMapping("/products/batch")
+    @Operation(summary = "Batch upload products", description = "Upload a list of products directly via JSON")
+    public ApiResponse<?> batchCreateProducts(@Valid @RequestBody List<ProductSaveDto> dtos) {
+        inventoryService.newProducts(dtos);
+        return ApiResponse.ok("Batch products created successfully");
     }
 }

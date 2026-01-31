@@ -10,6 +10,7 @@ import com.ritsard.baisard.domain.member.dto.response.MyCashiersDto;
 import com.ritsard.baisard.domain.member.entity.Company;
 import com.ritsard.baisard.domain.member.entity.Member;
 import com.ritsard.baisard.domain.member.entity.QMember;
+import com.ritsard.baisard.domain.member.enums.MemberApprovalStatus;
 import com.ritsard.baisard.domain.member.enums.PermissionType;
 import com.ritsard.baisard.domain.member.mapper.CompanyMapper;
 import com.ritsard.baisard.domain.member.mapper.MemberMapper;
@@ -17,11 +18,15 @@ import com.ritsard.baisard.domain.member.repository.AdminRepositoryQuery;
 import com.ritsard.baisard.domain.member.repository.CompanyRepository;
 import com.ritsard.baisard.domain.member.repository.MemberRepository;
 import com.ritsard.baisard.domain.member.repository.PosTerminalInfoRepository;
+import com.ritsard.baisard.global.auth.service.AuthService;
 import com.ritsard.baisard.global.exception.ConflictException;
 import com.ritsard.baisard.global.utils.AESUtil;
+import com.ritsard.baisard.jwt.dto.signup.SignupRequestDto;
 import com.ritsard.baisard.jwt.utils.AuthManager;
 import com.ritsard.baisard.utils.exceptions.NoSuchUserException;
 import com.ritsard.baisard.utils.exceptions.NotFoundException;
+import com.ritsard.baisard.utils.exceptions.crypto.CryptoKeyException;
+import com.ritsard.baisard.utils.exceptions.crypto.EncryptionException;
 import com.ritsard.baisard.utils.helper.AESConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +34,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -45,6 +51,7 @@ public class AdminServiceImpl implements AdminService {
     private final CompanyMapper companyMapper;
     private final AdminRepositoryQuery adminRepositoryQuery;
     private final AESUtil aesUtil;
+    private final AuthService authService;
 
     @Override
     public AdminInfoDto adminProfile(UUID adminId) {
@@ -138,5 +145,15 @@ public class AdminServiceImpl implements AdminService {
 
         // 4. Call Custom Repository Projection
         return adminRepositoryQuery.findMyCashiersProjected(where, pageable);
+    }
+
+    @Override
+    public void registerCashier(SignupRequestDto signupRequestDto) throws CryptoKeyException, EncryptionException {
+        Member admin = authManager.getMember();
+//        Member member = Member.builder()
+//                .company(admin.getCompany())
+//                .approvalStatus(MemberApprovalStatus.APPROVED)
+//                .build();
+        authService.registerCashier(signupRequestDto);
     }
 }

@@ -5,6 +5,9 @@ import com.ritsard.baisard.domain.member.dto.response.AdminInfoDto;
 import com.ritsard.baisard.domain.member.dto.response.CashierInfoDto;
 import com.ritsard.baisard.domain.member.dto.response.CompanyDto;
 import com.ritsard.baisard.domain.member.dto.response.MyCashiersDto;
+import com.ritsard.baisard.jwt.dto.signup.SignupRequestDto;
+import com.ritsard.baisard.utils.exceptions.crypto.CryptoKeyException;
+import com.ritsard.baisard.utils.exceptions.crypto.EncryptionException;
 import org.springframework.data.domain.Page;
 
 import java.util.UUID;
@@ -20,6 +23,7 @@ public interface AdminService {
                                    Integer size,
                                    String sortBy,
                                    String direction);
+    void registerCashier(SignupRequestDto dto) throws CryptoKeyException, EncryptionException;
 
     CashierInfoDto cashierInfo(UUID cashierId);
 

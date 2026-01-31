@@ -13,7 +13,7 @@ import com.ritsard.baisard.domain.inventory.enums.VatType;
 import com.ritsard.baisard.domain.inventory.repository.CategoryRepository;
 import com.ritsard.baisard.domain.inventory.repository.InventoryRepository;
 import com.ritsard.baisard.domain.inventory.repository.ProductRepository;
-import com.ritsard.baisard.domain.inventory.service.InventoryService;
+import com.ritsard.baisard.domain.inventory.service.InventoryServiceImpl;
 import com.ritsard.baisard.domain.member.entity.Company;
 import com.ritsard.baisard.domain.member.entity.Member;
 import com.ritsard.baisard.global.exception.ConflictException;
@@ -41,7 +41,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Inventory Service Tests")
-public class InventoryServiceTest {
+public class InventoryServiceImplTest {
 
     @Mock
     private CategoryRepository categoryRepository;
@@ -58,7 +58,7 @@ public class InventoryServiceTest {
     private ImageUtils imageUtils;
 
     @InjectMocks
-    private InventoryService inventoryService;
+    private InventoryServiceImpl inventoryServiceImpl;
 
     private UUID testUuid;
     private UUID categoryUuid;
@@ -151,7 +151,7 @@ public class InventoryServiceTest {
                     .thenReturn(productPage);
 
             // Act
-            Object result = inventoryService.getProducts(
+            Object result = inventoryServiceImpl.getProducts(
                     "test", null, null, 0, 10, "name", "asc");
 
             // Assert
@@ -169,7 +169,7 @@ public class InventoryServiceTest {
                     .thenReturn(Optional.of(testProduct));
 
             // Act
-            ProductDto result = inventoryService.getProduct(testUuid);
+            ProductDto result = inventoryServiceImpl.getProduct(testUuid);
 
             // Assert
             assertNotNull(result);
@@ -188,7 +188,7 @@ public class InventoryServiceTest {
 
             // Act & Assert
             assertThrows(NotFoundException.class,
-                    () -> inventoryService.getProduct(testUuid));
+                    () -> inventoryServiceImpl.getProduct(testUuid));
             verify(productRepository).findById(testUuid);
         }
 
@@ -205,7 +205,7 @@ public class InventoryServiceTest {
                     .thenReturn(testProduct);
 
             // Act
-            inventoryService.newProduct(productSaveDto);
+            inventoryServiceImpl.newProduct(productSaveDto);
 
             // Assert
             verify(authManager).getMember();
@@ -224,7 +224,7 @@ public class InventoryServiceTest {
 
             // Act & Assert
             assertThrows(ConflictException.class,
-                    () -> inventoryService.newProduct(productSaveDto));
+                    () -> inventoryServiceImpl.newProduct(productSaveDto));
             verify(productRepository).existsByNameIgnoreCaseAndCategory_UuidCategory(
                     productSaveDto.getName(), categoryUuid);
             verify(productRepository, never()).save(any(Product.class));
@@ -242,7 +242,7 @@ public class InventoryServiceTest {
                     .thenReturn(Optional.of(testProduct));
 
             // Act
-            inventoryService.editProduct(testUuid, productSaveDto);
+            inventoryServiceImpl.editProduct(testUuid, productSaveDto);
 
             // Assert
             verify(productRepository).existsByNameIgnoreCaseAndCategory_UuidCategoryAndUuidProductNot(
@@ -261,7 +261,7 @@ public class InventoryServiceTest {
                     .thenReturn(testProduct);
 
             // Act
-            inventoryService.deleteProduct(testUuid);
+            inventoryServiceImpl.deleteProduct(testUuid);
 
             // Assert
             verify(productRepository).findById(testUuid);
@@ -276,7 +276,7 @@ public class InventoryServiceTest {
             when(productRepository.existsById(testUuid)).thenReturn(true);
 
             // Act
-            inventoryService.stockProduct(testUuid, stockQty);
+            inventoryServiceImpl.stockProduct(testUuid, stockQty);
 
             // Assert
             verify(productRepository).existsById(testUuid);
@@ -291,7 +291,7 @@ public class InventoryServiceTest {
             when(productRepository.existsById(testUuid)).thenReturn(true);
 
             // Act
-            inventoryService.stockProduct(testUuid, stockQty);
+            inventoryServiceImpl.stockProduct(testUuid, stockQty);
 
             // Assert
             verify(productRepository).existsById(testUuid);
@@ -307,7 +307,7 @@ public class InventoryServiceTest {
             // Act & Assert
             assertThrows(
                     NotFoundException.class,
-                    () -> inventoryService.stockProduct(testUuid, BigDecimal.ONE)
+                    () -> inventoryServiceImpl.stockProduct(testUuid, BigDecimal.ONE)
             );
 
             verify(productRepository).existsById(testUuid);
@@ -319,7 +319,7 @@ public class InventoryServiceTest {
         void shouldThrowValidationExceptionForZeroQuantity() {
             assertThrows(
                     ConflictException.class,
-                    () -> inventoryService.stockProduct(testUuid, BigDecimal.ZERO)
+                    () -> inventoryServiceImpl.stockProduct(testUuid, BigDecimal.ZERO)
             );
 
             verifyNoInteractions(productRepository);
@@ -341,7 +341,7 @@ public class InventoryServiceTest {
                     .thenReturn(List.of(testCategoryDto));
 
             // Act
-            List<CategoryDto> result = inventoryService.getCategories();
+            List<CategoryDto> result = inventoryServiceImpl.getCategories();
 
             // Assert
             assertNotNull(result);
@@ -376,7 +376,7 @@ public class InventoryServiceTest {
                     .thenReturn(productSlice);
 
             // Act
-            Slice<ProductDto> result = inventoryService.getProductsByCategory(
+            Slice<ProductDto> result = inventoryServiceImpl.getProductsByCategory(
                     categoryUuid, 0, 10, "name", "asc");
 
             // Assert
@@ -401,7 +401,7 @@ public class InventoryServiceTest {
                     .thenReturn(Optional.of(testCategoryDto));
 
             // Act
-            CategoryDto result = inventoryService.getCategory(categoryUuid);
+            CategoryDto result = inventoryServiceImpl.getCategory(categoryUuid);
 
             // Assert
             assertNotNull(result);
@@ -420,7 +420,7 @@ public class InventoryServiceTest {
                     .thenReturn(testCategory);
 
             // Act
-            inventoryService.newCategory(categoryDto);
+            inventoryServiceImpl.newCategory(categoryDto);
 
             // Assert
             verify(categoryRepository).existsByCategoryNameIgnoreCase("Food");
@@ -437,7 +437,7 @@ public class InventoryServiceTest {
 
             // Act & Assert
             assertThrows(ConflictException.class,
-                    () -> inventoryService.newCategory(categoryDto));
+                    () -> inventoryServiceImpl.newCategory(categoryDto));
             verify(categoryRepository, never()).save(any(Category.class));
         }
 
@@ -450,7 +450,7 @@ public class InventoryServiceTest {
                     .thenReturn(Optional.of(testCategory));
 
             // Act
-            inventoryService.updateCategory(categoryUuid, categoryDto);
+            inventoryServiceImpl.updateCategory(categoryUuid, categoryDto);
 
             // Assert
             verify(categoryRepository).findById(categoryUuid);
@@ -469,7 +469,7 @@ public class InventoryServiceTest {
                     .thenReturn(testCategory);
 
             // Act
-            inventoryService.deleteCategory(categoryUuid);
+            inventoryServiceImpl.deleteCategory(categoryUuid);
 
             // Assert
             verify(categoryRepository).existsByUuidCategoryAndIsDeletedFalse(categoryUuid);
@@ -486,7 +486,7 @@ public class InventoryServiceTest {
 
             // Act & Assert
             assertThrows(ConflictException.class,
-                    () -> inventoryService.deleteCategory(categoryUuid));
+                    () -> inventoryServiceImpl.deleteCategory(categoryUuid));
             verify(categoryRepository, never()).save(any(Category.class));
         }
     }
@@ -516,7 +516,7 @@ public class InventoryServiceTest {
             BigDecimal initialQuantity = testProduct.getQuantity();
 
             // Act
-            inventoryService.RecordInventoryTransaction(dto);
+            inventoryServiceImpl.RecordInventoryTransaction(dto);
 
             // Assert
             assertEquals(initialQuantity.add(BigDecimal.valueOf(50)),
@@ -546,7 +546,7 @@ public class InventoryServiceTest {
             BigDecimal initialQuantity = testProduct.getQuantity();
 
             // Act
-            inventoryService.RecordInventoryTransaction(dto);
+            inventoryServiceImpl.RecordInventoryTransaction(dto);
 
             // Assert
             assertEquals(initialQuantity.subtract(BigDecimal.valueOf(30)),
@@ -571,7 +571,7 @@ public class InventoryServiceTest {
 
             // Act & Assert
             assertThrows(IllegalStateException.class,
-                    () -> inventoryService.RecordInventoryTransaction(dto));
+                    () -> inventoryServiceImpl.RecordInventoryTransaction(dto));
             verify(inventoryRepository, never()).save(any(Inventory.class));
         }
 
@@ -594,7 +594,7 @@ public class InventoryServiceTest {
                     .thenReturn(testProduct);
 
             // Act
-            inventoryService.RecordInventoryTransaction(dto);
+            inventoryServiceImpl.RecordInventoryTransaction(dto);
 
             // Assert
             assertEquals(BigDecimal.valueOf(80), testProduct.getQuantity());
@@ -615,7 +615,7 @@ public class InventoryServiceTest {
 
             // Act & Assert
             assertThrows(ConflictException.class,
-                    () -> inventoryService.RecordInventoryTransaction(dto));
+                    () -> inventoryServiceImpl.RecordInventoryTransaction(dto));
             verify(productRepository, never()).findById(any());
         }
 
@@ -632,7 +632,7 @@ public class InventoryServiceTest {
 
             // Act & Assert
             assertThrows(ConflictException.class,
-                    () -> inventoryService.RecordInventoryTransaction(dto));
+                    () -> inventoryServiceImpl.RecordInventoryTransaction(dto));
             verify(productRepository, never()).findById(any());
         }
 
@@ -652,7 +652,7 @@ public class InventoryServiceTest {
 
             // Act & Assert
             assertThrows(NotFoundException.class,
-                    () -> inventoryService.RecordInventoryTransaction(dto));
+                    () -> inventoryServiceImpl.RecordInventoryTransaction(dto));
             verify(inventoryRepository, never()).save(any(Inventory.class));
         }
     }

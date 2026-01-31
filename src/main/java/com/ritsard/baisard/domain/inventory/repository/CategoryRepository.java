@@ -4,6 +4,7 @@ import com.ritsard.baisard.domain.inventory.dto.response.CategoryDto;
 import com.ritsard.baisard.domain.inventory.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -12,12 +13,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface CategoryRepository extends JpaRepository<Category, UUID> {
+public interface CategoryRepository extends JpaRepository<Category, UUID>, QuerydslPredicateExecutor<Category> {
     boolean existsByCategoryNameIgnoreCase(String categoryName);
 
     boolean existsByCategoryNameIgnoreCaseAndCompany_UuidCompany(String categoryName, UUID uuidCompany);
 
     Optional<Category> findByCategoryNameIgnoreCaseAndCompany_UuidCompany(String categoryName, UUID uuidCompany);
+
+    List<Category> findByCompany_UuidCompany(UUID companyId);
 
     boolean existsByUuidCategoryAndIsDeletedFalse(UUID uuidCategory);
 

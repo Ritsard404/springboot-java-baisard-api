@@ -6,7 +6,10 @@ import com.ritsard.baisard.domain.member.dto.response.CashierInfoDto;
 import com.ritsard.baisard.domain.member.dto.response.CompanyDto;
 import com.ritsard.baisard.domain.member.dto.response.MyCashiersDto;
 import com.ritsard.baisard.domain.member.service.AdminService;
+import com.ritsard.baisard.jwt.dto.signup.SignupRequestDto;
 import com.ritsard.baisard.utils.dto.ApiResponse;
+import com.ritsard.baisard.utils.exceptions.crypto.CryptoKeyException;
+import com.ritsard.baisard.utils.exceptions.crypto.EncryptionException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -41,6 +44,16 @@ public class AdminController {
                 adminService.cashierInfo(cashierId),
                 "Cashier info fetched successfully"
         );
+    }
+
+    @Operation(summary = "Cashier Registration (ADMIN)")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping("/register/cashier")
+    public ApiResponse<?> registerCashier(
+            @Valid @RequestBody SignupRequestDto dto
+    ) throws CryptoKeyException, EncryptionException {
+        adminService.registerCashier(dto);
+        return ApiResponse.ok();
     }
 
     @PutMapping("/cashiers")

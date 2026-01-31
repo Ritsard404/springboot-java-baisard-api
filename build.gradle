@@ -150,6 +150,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.15.3'
     implementation 'com.fasterxml.jackson.module:jackson-module-parameter-names:2.15.3'
 
+    implementation 'org.apache.poi:poi:3.9'
 
 //    implementation "com.lodong:jwt-member-module2:${lodongJwtMemberModule2Version}"
 //    implementation "com.lodong:base-module:${lodongBaseModuleVersion}"
