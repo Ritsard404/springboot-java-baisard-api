@@ -28,50 +28,16 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/inventory")
 @RequiredArgsConstructor
-@Tag(name = "Inventory Management API (ADMIN & SUPERADMIN)", description = "Manage products, categories, and inventory transactions")
+@Tag(name = "Inventory Management API (ADMIN & SUPERADMIN)", description = "Manage inventory transactions")
 //@PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
-public class InventoryController implements FileCrudable<Product, ImageFileInfo> {
+public class InventoryController {
     private final InventoryService inventoryService;
-    // ==================== PRODUCT ENDPOINTS ====================
-
-    @GetMapping("/products")
-    @Operation(summary = "Get product list", description = "Retrieve paginated and filtered product list")
-//    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
-    public ApiResponse<?> getProducts(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String barcode,
-            @RequestParam(required = false) UUID categoryId,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(defaultValue = "name") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction
-    ) {
-        Object products = inventoryService.getProducts(keyword, barcode, categoryId, page, size, sortBy, direction);
-        return ApiResponse.ok(products);
-    }
-
-    @GetMapping("/products/{productId}")
-    @Operation(summary = "Get product detail", description = "Retrieve single product information")
-//    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
-    public ApiResponse<ProductDto> getProduct(@PathVariable UUID productId) {
-        ProductDto product = inventoryService.getProduct(productId);
-        return ApiResponse.ok(product);
-    }
-
-    @PostMapping("/products")
-    @Operation(summary = "Create new product", description = "Add a new product to inventory")
-//    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
-    public ApiResponse<?> createProduct(@Valid @RequestBody ProductSaveDto request) {
-        inventoryService.newProduct(request);
-        return ApiResponse.ok("Product created successfully");
-    }
 
     @PatchMapping("/products/{productId}/stock")
     @Operation(
             summary = "Update product stock quantity",
             description = "Directly update the stock quantity of a product"
     )
-//    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
     public ApiResponse<?> stockProduct(
             @PathVariable UUID productId,
             @RequestParam BigDecimal quantity
@@ -80,89 +46,6 @@ public class InventoryController implements FileCrudable<Product, ImageFileInfo>
         return ApiResponse.ok("Product stock updated successfully");
     }
 
-    @PutMapping("/products/{productId}")
-    @Operation(summary = "Update product", description = "Update existing product information")
-//    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
-    public ApiResponse<?> updateProduct(
-            @PathVariable UUID productId,
-            @Valid @RequestBody ProductSaveDto request
-    ) {
-        inventoryService.editProduct(productId, request);
-        return ApiResponse.ok("Product updated successfully");
-    }
-
-    @DeleteMapping("/products/{productId}")
-    @Operation(summary = "Delete product", description = "Soft delete a product from inventory")
-//    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
-    public ApiResponse<?> deleteProduct(@PathVariable UUID productId) {
-        inventoryService.deleteProduct(productId);
-        return ApiResponse.ok("Product deleted successfully");
-    }
-
-    // ==================== CATEGORY ENDPOINTS ====================
-
-    @GetMapping("/categories")
-    @Operation(summary = "Get all categories", description = "Retrieve list of all product categories")
-    public ApiResponse<List<CategoryDto>> getCategories() {
-        List<CategoryDto> categories = inventoryService.getCategories();
-        return ApiResponse.ok(categories);
-    }
-
-
-    @GetMapping("/categories/{categoryId}/products")
-    @Operation(summary = "Get products by category", description = "Retrieve a slice of products belonging to a specific category")
-    public ApiResponse<?> getProductsByCategory(
-            @PathVariable UUID categoryId,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(defaultValue = "name") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction
-    ) {
-        Slice<ProductDto> products = inventoryService.getProductsByCategory(
-                categoryId,
-                page,
-                size,
-                sortBy,
-                direction
-        );
-        return ApiResponse.ok(products);
-    }
-
-    @GetMapping("/categories/{categoryId}")
-    @Operation(summary = "Get category detail", description = "Retrieve single category information")
-    public ApiResponse<CategoryDto> getCategory(@PathVariable UUID categoryId) {
-        CategoryDto category = inventoryService.getCategory(categoryId);
-        return ApiResponse.ok(category);
-    }
-
-    @PostMapping("/categories")
-    @Operation(summary = "Create new category", description = "Add a new product category")
-//    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
-    public ApiResponse<?> createCategory(@Valid @RequestBody CategoryDto request) {
-        inventoryService.newCategory(request);
-        return ApiResponse.ok("Category created successfully");
-    }
-
-    @PutMapping("/categories/{categoryId}")
-    @Operation(summary = "Update category", description = "Update existing category information")
-//    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
-    public ApiResponse<?> updateCategory(
-            @PathVariable UUID categoryId,
-            @Valid @RequestBody CategoryDto request
-    ) {
-        inventoryService.updateCategory(categoryId, request);
-        return ApiResponse.ok("Category updated successfully");
-    }
-
-    @DeleteMapping("/categories/{categoryId}")
-    @Operation(summary = "Delete category", description = "Soft delete a category (only if no products exist)")
-//    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
-    public ApiResponse<?> deleteCategory(@PathVariable UUID categoryId) {
-        inventoryService.deleteCategory(categoryId);
-        return ApiResponse.ok("Category deleted successfully");
-    }
-
-    // ==================== INVENTORY TRANSACTION ENDPOINTS ====================
 
     @PostMapping("/transactions")
     @Operation(
@@ -173,14 +56,5 @@ public class InventoryController implements FileCrudable<Product, ImageFileInfo>
     public ApiResponse<?> recordTransaction(@Valid @RequestBody InventoryTransactionRequestDto request) {
         inventoryService.RecordInventoryTransaction(request);
         return ApiResponse.ok("Inventory transaction recorded successfully");
-    }
-
-    // ==================== BATCH OPERATIONS ====================
-
-    @PostMapping("/products/batch")
-    @Operation(summary = "Batch upload products", description = "Upload a list of products directly via JSON")
-    public ApiResponse<?> batchCreateProducts(@Valid @RequestBody List<ProductSaveDto> dtos) {
-        inventoryService.newProducts(dtos);
-        return ApiResponse.ok("Batch products created successfully");
     }
 }

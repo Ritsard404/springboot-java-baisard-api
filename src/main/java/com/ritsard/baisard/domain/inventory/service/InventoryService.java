@@ -12,39 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface InventoryService {
-    //    Product Services
-    Object getProducts(String keyword, String barcode, UUID uuidCategory,
-                       Integer page, Integer size, String sortBy, String direction);
-
-    ProductDto getProduct(UUID uuidProduct);
-
-    Slice<ProductDto> getProductsByCategory(UUID uuidCategory, Integer page, Integer size, String sortBy, String direction);
-
     void stockProduct(UUID uuidProduct, BigDecimal qty);
 
-    void newProduct(ProductSaveDto productSaveDto);
-
-    void newProducts(List<ProductSaveDto> dtos);
-
-    void batchUploadNewProducts(MultipartFile file);
-
-    public byte[] generateCsvTemplate();
-
-    void editProduct(UUID uuidProduct, ProductSaveDto productSaveDto);
-
-    void deleteProduct(UUID uuidProduct);
-
-    // Category Services?
-    List<CategoryDto> getCategories();
-
-    CategoryDto getCategory(UUID uuidCategory);
-
-    void newCategory(CategoryDto categoryDto);
-
-    void updateCategory(UUID uuidCategory, CategoryDto categoryDto);
-
-    void deleteCategory(UUID uuidCategory);
-
-    // Inventory Record
     void RecordInventoryTransaction(InventoryTransactionRequestDto dto);
 }

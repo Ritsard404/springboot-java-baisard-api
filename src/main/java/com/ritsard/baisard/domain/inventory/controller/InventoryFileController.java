@@ -1,6 +1,7 @@
 package com.ritsard.baisard.domain.inventory.controller;
 
 import com.ritsard.baisard.domain.inventory.service.InventoryService;
+import com.ritsard.baisard.domain.inventory.service.ProductService;
 import com.ritsard.baisard.utils.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,19 +18,19 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "Inventory Batch Upload API")
 public class InventoryFileController {
 
-    private final InventoryService inventoryService;
+    private final ProductService productService;
 
     @PostMapping(value = "/products/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload CSV file", description = "Upload a CSV file for batch product registration")
     public ApiResponse<?> uploadProducts(@RequestParam("file") MultipartFile file) {
-        inventoryService.batchUploadNewProducts(file);
+        productService.batchUploadNewProducts(file);
         return ApiResponse.ok("File uploaded and processed successfully");
     }
 
     @GetMapping("/products/template")
     @Operation(summary = "Download CSV template", description = "Download the CSV template for batch upload")
     public ResponseEntity<byte[]> downloadTemplate() {
-        byte[] csvData = inventoryService.generateCsvTemplate();
+        byte[] csvData = productService.generateCsvTemplate();
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=inventory_template.csv")
