@@ -32,7 +32,7 @@ public class MemberController {
 
     @GetMapping
     @Operation(summary = "Get members")
-    public ApiResponse<Page<MemberListDto>> getMembers(
+    public ApiResponse<?> getMembers(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) MemberApprovalStatus approvalStatus,
             @RequestParam(defaultValue = "0") Integer page,

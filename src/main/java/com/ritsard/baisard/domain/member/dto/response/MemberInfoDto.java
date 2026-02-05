@@ -22,13 +22,13 @@ public class MemberInfoDto {
     private String identifier;
     @NotBlank
     private String name;
-    @NotBlank
+//    @NotBlank
     private String nickName;
     @NotBlank
     private String email;
-    @NotBlank
+//    @NotBlank
     private String phoneNumber;
-    @NotNull
+//    @NotNull
     private LocalDate birthdate;
     private MemberApprovalStatus approvalStatus;
     private Boolean isActive;

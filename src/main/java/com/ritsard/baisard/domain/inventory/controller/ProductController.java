@@ -40,6 +40,19 @@ public class ProductController implements FileCrudable<Product, ImageFileInfo> {
         return ApiResponse.ok(products);
     }
 
+    @GetMapping("/categories/{categoryId}")
+    @Operation(summary = "Get product list by category", description = "Retrieve paginated and filtered product by category list")
+    public ApiResponse<?> getProductsByCategory(
+            @RequestParam(required = false) UUID categoryId,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction
+    ) {
+        Object products = productService.getProductsByCategory(categoryId, page, size, sortBy, direction);
+        return ApiResponse.ok(products);
+    }
+
     @GetMapping("/{productId}")
     @Operation(summary = "Get product detail", description = "Retrieve single product information")
     public ApiResponse<ProductDto> getProduct(@PathVariable UUID productId) {

@@ -30,6 +30,13 @@ import java.util.UUID;
 public class CategoryController {
     private final CategoryService categoryService;
 
+    @GetMapping()
+    @Operation(summary = "Get all company categories detail", description = "Retrieve categories information")
+    public ApiResponse<?> getCategories() {
+        List<CategoryDto> category = categoryService.getCategories();
+        return ApiResponse.ok(category);
+    }
+
     @GetMapping("/{categoryId}")
     @Operation(summary = "Get category detail", description = "Retrieve single category information")
     public ApiResponse<CategoryDto> getCategory(@PathVariable UUID categoryId) {
@@ -37,9 +44,8 @@ public class CategoryController {
         return ApiResponse.ok(category);
     }
 
-    @PostMapping("")
+    @PostMapping()
     @Operation(summary = "Create new category", description = "Add a new product category")
-//    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
     public ApiResponse<?> createCategory(@Valid @RequestBody CategoryDto request) {
         categoryService.newCategory(request);
         return ApiResponse.ok("Category created successfully");
@@ -47,7 +53,6 @@ public class CategoryController {
 
     @PutMapping("/{categoryId}")
     @Operation(summary = "Update category", description = "Update existing category information")
-//    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
     public ApiResponse<?> updateCategory(
             @PathVariable UUID categoryId,
             @Valid @RequestBody CategoryDto request
@@ -58,7 +63,6 @@ public class CategoryController {
 
     @DeleteMapping("/{categoryId}")
     @Operation(summary = "Delete category", description = "Soft delete a category (only if no products exist)")
-//    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
     public ApiResponse<?> deleteCategory(@PathVariable UUID categoryId) {
         categoryService.deleteCategory(categoryId);
         return ApiResponse.ok("Category deleted successfully");
