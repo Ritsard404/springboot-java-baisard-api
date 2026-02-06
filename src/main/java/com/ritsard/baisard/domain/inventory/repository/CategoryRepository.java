@@ -31,7 +31,7 @@ public interface CategoryRepository extends JpaRepository<Category, UUID>, Query
                     c.categoryName
                 )
                 FROM Category c
-               JOIN c.products p
+               LEFT JOIN c.products p
                WHERE (
                    :uuidCompany IS NULL
                    OR p.company.uuidCompany = :uuidCompany

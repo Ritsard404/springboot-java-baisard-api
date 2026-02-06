@@ -1,7 +1,12 @@
 package com.ritsard.baisard.domain.inventory.service;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ritsard.baisard.domain.inventory.dto.response.CategoryDto;
 import com.ritsard.baisard.domain.inventory.entity.Category;
+import com.ritsard.baisard.domain.inventory.entity.QCategory;
+import com.ritsard.baisard.domain.inventory.entity.QProduct;
 import com.ritsard.baisard.domain.inventory.repository.CategoryRepository;
 import com.ritsard.baisard.domain.member.entity.Company;
 import com.ritsard.baisard.domain.member.entity.Member;
@@ -24,15 +29,39 @@ import java.util.UUID;
 public class CategoryServiceImpl implements CategoryService {
     private final AuthManager<Member> authManager;
     private final CategoryRepository categoryRepository;
+    private final JPAQueryFactory queryFactory;
 
 
     @Override
     public List<CategoryDto> getCategories() {
+        QCategory c = QCategory.category;
+        QProduct p = QProduct.product;
+
         Member member = authManager.getMember();
         UUID companyUuid = (member != null && member.getCompany() != null)
                 ? member.getCompany().getUuidCompany()
                 : null;
-        return categoryRepository.findAllDto(companyUuid);
+
+        BooleanBuilder where = new BooleanBuilder();
+
+        if (companyUuid != null) {
+            where.and(
+                    p.company.uuidCompany.eq(companyUuid)
+                            .or(p.company.isNull())
+            );
+        }
+        return queryFactory
+                .select(Projections.constructor(
+                        CategoryDto.class,
+                        c.uuidCategory,
+                        c.categoryName
+                ))
+                .from(c)
+                .leftJoin(c.products, p)
+                .where(where)
+                .distinct()
+                .orderBy(c.categoryName.asc())
+                .fetch();
     }
 
     @Override
