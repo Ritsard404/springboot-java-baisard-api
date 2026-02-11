@@ -45,6 +45,7 @@ public class MemberServiceImpl implements MemberService {
     private final CompanyMapper companyMapper;
     private final MemberRepository memberRepository;
     private final AESUtil aesUtil;
+    private final PosTerminalService terminalService;
     private final AuthManager<Member> authManager;
 
     @Override
@@ -161,12 +162,23 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public void activateMember(UUID memberId) {
-        updateMember(memberId, Member::restoreMember);
+        // We handle activation specifically because it triggers terminal creation
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException("Member not found"));
+
+        member.restoreMember(); // Custom logic for activation
+        memberRepository.save(member);
+
+        // Now we pass the fully loaded member to the terminal service
+        terminalService.newPosTerminal(member);
+
+        log.info("Member {} activated and POS terminal provisioned.", memberId);
     }
 
     @Override
     public void deActivateMember(UUID memberId) {
         updateMember(memberId, Member::softDelete);
+        log.info("Member {} deactivated.", memberId);
     }
 
     private void updateMember(UUID memberId, Consumer<Member> action) {

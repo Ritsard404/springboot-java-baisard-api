@@ -72,8 +72,8 @@ public class PosTerminalInfo extends BaseEntity {
     @Column(name = "use_center", nullable = false)
     private String useCenter;
 
-    @Column(name = "db_name", nullable = false)
-    private String dbName;
+//    @Column(name = "db_name", nullable = false)
+//    private String dbName;
 
     @Column(name = "printer_name", nullable = false)
     private String printerName;
