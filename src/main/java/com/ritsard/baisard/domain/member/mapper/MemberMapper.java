@@ -7,7 +7,9 @@ import com.ritsard.baisard.global.utils.AESUtil;
 import com.ritsard.baisard.jwt.model.entity.LoginCredential;
 import com.ritsard.baisard.utils.helper.AESConverter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
 @RequiredArgsConstructor
 public class MemberMapper {
 

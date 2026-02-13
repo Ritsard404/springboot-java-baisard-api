@@ -157,22 +157,23 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public void approveMember(UUID memberId) {
-        updateMember(memberId, member -> member.approve(authManager.getMember()));
+
+        Member approver = authManager.getMember();
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException("Member not found"));
+
+        member.approve(approver); // pass the actual approver, not self
+        memberRepository.save(member);
+
+        terminalService.newPosTerminal(member);
+
+        log.info("Member {} approved and POS terminal provisioned.", memberId);
     }
 
     @Override
     public void activateMember(UUID memberId) {
-        // We handle activation specifically because it triggers terminal creation
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NotFoundException("Member not found"));
-
-        member.restoreMember(); // Custom logic for activation
-        memberRepository.save(member);
-
-        // Now we pass the fully loaded member to the terminal service
-        terminalService.newPosTerminal(member);
-
-        log.info("Member {} activated and POS terminal provisioned.", memberId);
+        updateMember(memberId, Member::restoreMember);
+        log.info("Member {} activated.", memberId);
     }
 
     @Override

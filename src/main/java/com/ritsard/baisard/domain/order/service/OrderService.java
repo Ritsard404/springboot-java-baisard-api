@@ -77,7 +77,7 @@ public class OrderService implements IOrderService {
         Invoice invoice = createInvoice(orderDto, cashier, terminal, calculation, invoiceNumber);
 
         // 7. Create items
-        List<Item> items = createItems(orderDto.getItems(), productMap, terminal.isTrainMode());
+        List<Item> items = createItems(orderDto.getItems(), productMap, terminal.isTrainMode(), invoice);
         invoice.setItems(items);
 
         // 8. Create e-payments
@@ -130,7 +130,7 @@ public class OrderService implements IOrderService {
         );
 
         // 6. Create items with VOID status
-        List<Item> items = createCancelledItems(orderDto.getItems(), productMap, terminal.isTrainMode());
+        List<Item> items = createCancelledItems(orderDto.getItems(), productMap, terminal.isTrainMode(), invoice);
         invoice.setItems(items);
 
         // 7. Save cancelled invoice
@@ -397,6 +397,7 @@ public class OrderService implements IOrderService {
         Invoice.InvoiceBuilder builder = Invoice.builder()
                 .invoiceNumber(invoiceNumber)
                 .cashier(cashier)
+                .terminal(terminal)
                 .grossAmount(calc.getGrossAmount())
                 .totalAmount(calc.getTotalAmount())
                 .subTotal(calc.getSubTotal())
@@ -436,6 +437,7 @@ public class OrderService implements IOrderService {
     ) {
         return Invoice.builder()
                 .invoiceNumber(invoiceNumber)
+                .terminal(terminal)
                 .cashier(cashier)
                 .voidedBy(manager)
                 .reason(reason)
@@ -461,7 +463,8 @@ public class OrderService implements IOrderService {
     private List<Item> createItems(
             List<ItemRequestDto> itemDtos,
             Map<UUID, Product> productMap,
-            boolean isTrainMode
+            boolean isTrainMode,
+            Invoice invoice
     ) {
         List<Item> items = new ArrayList<>();
 
@@ -474,6 +477,7 @@ public class OrderService implements IOrderService {
                     .subTotal(dto.getSubTotal())
                     .status(InvoiceStatusType.PAID)
                     .product(product)
+                    .invoice(invoice)
                     .isTrainingMode(isTrainMode)
                     .build();
 
@@ -486,7 +490,9 @@ public class OrderService implements IOrderService {
     private List<Item> createCancelledItems(
             List<ItemRequestDto> itemDtos,
             Map<UUID, Product> productMap,
-            boolean isTrainMode
+            boolean isTrainMode,
+            Invoice invoice
+
     ) {
         List<Item> items = new ArrayList<>();
 
@@ -499,6 +505,7 @@ public class OrderService implements IOrderService {
                     .subTotal(BigDecimal.ZERO) // Cancelled items have 0 subtotal
                     .status(InvoiceStatusType.VOID)
                     .product(product)
+                    .invoice(invoice)
                     .isTrainingMode(isTrainMode)
                     .build();
 

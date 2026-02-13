@@ -1,5 +1,6 @@
 package com.ritsard.baisard.domain.member.service;
 
+import com.ritsard.baisard.domain.member.dto.request.PosTerminalRequestDto;
 import com.ritsard.baisard.domain.member.dto.response.PosTerminalResponseDto;
 import com.ritsard.baisard.domain.member.entity.Member;
 import com.ritsard.baisard.domain.member.enums.MemberApprovalStatus;
@@ -27,4 +28,6 @@ public interface PosTerminalService {
     void deactivatePosTerminal(UUID uuidPosTerminal);
 
     void deletePosTerminal(UUID uuidPosTerminal);
+
+    void updatePosTerminal(PosTerminalRequestDto dto);
 }

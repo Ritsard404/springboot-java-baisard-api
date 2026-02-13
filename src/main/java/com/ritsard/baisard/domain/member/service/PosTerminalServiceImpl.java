@@ -3,6 +3,7 @@ package com.ritsard.baisard.domain.member.service;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.ritsard.baisard.domain.member.dto.request.PosTerminalRequestDto;
 import com.ritsard.baisard.domain.member.dto.response.PosTerminalResponseDto;
 import com.ritsard.baisard.domain.member.entity.*;
 import com.ritsard.baisard.domain.member.mapper.PosTerminalInfoMapper;
@@ -150,6 +151,23 @@ public class PosTerminalServiceImpl implements PosTerminalService {
     @Override
     public void deletePosTerminal(UUID uuidPosTerminal) {
         terminalInfoRepository.delete(terminalInfo(uuidPosTerminal));
+    }
+
+    @Override
+    public void updatePosTerminal(PosTerminalRequestDto dto) {
+        log.info("Updating POS terminal: {}", dto.uuidPosTerminal());
+
+        // 1. Fetch the existing entity
+        PosTerminalInfo info = terminalInfoRepository.findById(dto.uuidPosTerminal())
+                .orElseThrow(() -> new NotFoundException("Terminal info not found for update"));
+
+        // 2. Map DTO changes onto the existing entity
+        infoMapper.adminPosInfoFromDto(dto, info);
+
+        // 3. Save the updated entity
+        terminalInfoRepository.save(info);
+
+        log.info("Successfully updated terminal info for: {}", info.getPosName());
     }
 
     private PosTerminalInfo terminalInfo(UUID uuidPosTerminal) {
